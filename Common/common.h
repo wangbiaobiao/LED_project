@@ -7,6 +7,12 @@ typedef enum boolean
 	TRUE	
 }boolean;
 
+#define PRINTF(printf_info)	{ \
+	printf(printf_info);\
+	fflush(stdout);\
+	sync();\
+}
+
 boolean myStrcpy( char * des, char* src, int start,  int len); 
 
 boolean myUint8cpy(unsigned char * des, unsigned char* src, int start,  int len);
