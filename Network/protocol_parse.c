@@ -627,7 +627,7 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 		{
 	//			//strcat(message_body,"1100201");
 			//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-			NodeAddress = i+1;
+			NodeAddress = i+1+64;
 			if(!send_cmd(NodeAddress, CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
 			{
 				node_abnormal |= 1;
@@ -819,7 +819,13 @@ void* send_heartbeat_packet(void * arg)
 		myUint8cpy(message_info, message_body, MESSAGE_HEAD_LEN, message_len);
 		message_info[message_len+MESSAGE_HEAD_LEN] = 0xcc;
 		message_info[message_len+MESSAGE_HEAD_LEN+1] = getUint8BCC(message_info,14, message_len+MESSAGE_HEAD_LEN+1);
-		
+		int i;
+		printf("************************\n");
+		for(i = 0;i < message_len+MESSAGE_HEAD_LEN+2; i++)
+		{
+			printf("%x ",message_info[i]);
+		}
+		printf("\n");
 		if(!network_write(message_sockfd, message_info, message_len+MESSAGE_HEAD_LEN+2))
 		{
 			message_isConnected = 0;
@@ -914,25 +920,22 @@ boolean recieve_server_packet()
 	memset(t_recieve_info, '\0', 4096);
 	memset(message_temp, '\0', 4096);
 	memset(stc_info, '\0', 1024);
-//	if(!network_recieve_semaphore_p())
-//	{
-//		printf("network_recieve_semaphore_p fail\n");
-//	}
 
 	if(message_sockfd == -1)
 		return FALSE;
+	//read the head and get length
 	if(network_read(message_sockfd, t_recieve_info, MESSAGE_HEAD_LEN))	
 	{
+		//控制包
 		if(t_recieve_info[0] == STC)
 		{
 			for(j=0;j<MESSAGE_HEAD_LEN;j++)
 				stc_info[j] = t_recieve_info[j];
-	//		printf("++++++++++++++++++++++++++++++\n");
-	//		network_read(message_sockfd, stc_info, 1024);
-	//		printf("++++++++++++++++++++++++++++++\n");
-			if(network_read(message_sockfd, stc_info+MESSAGE_HEAD_LEN, stc_info[2]-12))	
+			//read the info
+			if(network_read(message_sockfd, stc_info+MESSAGE_HEAD_LEN, stc_info[2]-11))	
 			{
 				memset(t_recieve_info, '\0', 4096);
+				//read the what
 				if(!network_read(message_sockfd, t_recieve_info, MESSAGE_HEAD_LEN))	
 				{
 					message_isConnected = 0;
@@ -943,6 +946,7 @@ boolean recieve_server_packet()
 				message_isConnected = 0;
 			}
 		}
+		//心跳包
 		printf("\n++%02x,%02x,%02x,%02x++\n",t_recieve_info[0],t_recieve_info[1],t_recieve_info[2],t_recieve_info[3]);
 		t_recieve_len  = get_message_len(t_recieve_info);
 		printf("===%d====",t_recieve_len);
@@ -1023,7 +1027,7 @@ boolean recieve_server_packet()
 					if(-1 == t_packet_len)
 						return FALSE;
 					unsigned char led_status_info[4096];
-					int info_leek = stc_info[1]+2;
+					int info_leek = stc_info[2]+3;
 					memset(led_status_info, '\0', 4096);
 					myUint8cpy(led_status_info, stc_info, 0, info_leek);
 					construct_packet_head(led_status_info+info_leek, GETWAY_TO_SERVER_CONTROL);
