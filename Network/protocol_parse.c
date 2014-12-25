@@ -76,6 +76,7 @@ void* message_init(void* arg)
 					printf("============send_unregist_packet fail================\n");
 					continue;
 				}
+				printf("now already unregist\n");
 				if(!send_regist_packet())
 				{
 					message_isConnected = 0;
@@ -294,7 +295,7 @@ boolean parse_return_code(int type)
 boolean parse_heartbeat_packet(unsigned char * info)
 {
 	char t_info[10], t_time[20], t_version[16], current_version[16], t_strategy[32];
-	char dir_name_info[128][128] = {"getway"};//, app_name[128] = "ledPro";
+	char dir_name_info[128][128] = {"ledrelay"};//, app_name[128] = "ledPro";
 	struct tm t_temp;
 	char t_cmd[128];
 	int info_leek = 0;
@@ -929,7 +930,7 @@ boolean recieve_server_packet()
 	//		printf("++++++++++++++++++++++++++++++\n");
 	//		network_read(message_sockfd, stc_info, 1024);
 	//		printf("++++++++++++++++++++++++++++++\n");
-			if(network_read(message_sockfd, stc_info+14, stc_info[1]-12))	
+			if(network_read(message_sockfd, stc_info+MESSAGE_HEAD_LEN, stc_info[2]-12))	
 			{
 				memset(t_recieve_info, '\0', 4096);
 				if(!network_read(message_sockfd, t_recieve_info, MESSAGE_HEAD_LEN))	
@@ -969,7 +970,7 @@ boolean recieve_server_packet()
 				case SERVER_TO_GETWAY_REGIST_TYPE:
 				{
 					boolean t_return  = parse_regist_packet(t_recieve_info);
-				//	printf("--------------------------------------------------%d------------------------------\n",t_return);
+					printf("-----------SERVER_TO_GETWAY_REGIST_TYPE------------%d------------------------------\n",t_return);
 					if(t_return)
 						is_recieve_regist_packet = 1;
 					else
@@ -984,7 +985,7 @@ boolean recieve_server_packet()
 				case SERVER_TO_GETWAY_UNREGIST_TYPE:
 				{
 					boolean t_return  = parse_unregist_packet(t_recieve_info);
-				//	printf("--------------------------------------------------%d------------------------------\n",t_return);
+					printf("---------SERVER_TO_GETWAY_UNREGIST_TYPE---------------%d------------------------------\n",t_return);
 					if(t_return)
 						is_recieve_unregist_packet = 1;
 					else
@@ -999,6 +1000,7 @@ boolean recieve_server_packet()
 				case SERVER_TO_GETWAY_HEARTBEAT_TYPE:
 				{
 					boolean t_return = parse_heartbeat_packet(t_recieve_info);
+					printf("---------SERVER_TO_GETWAY_HEARTBEAT_TYPE---------------%d------------------------------\n",t_return);
 					if(t_return)
 						is_recieve_message_packet = 1;
 					else
@@ -1011,6 +1013,7 @@ boolean recieve_server_packet()
 				}
 				case SERVER_TO_GETWAY_CONTROL:
 				{
+					printf("-------------SERVER_TO_GETWAY_CONTROL------------------------------------\n");
 					int nodes = parse_control_packet(t_recieve_info);
 					int t_packet_len = parse_message_head(t_recieve_info);
 				//	if(!network_recieve_semaphore_v())

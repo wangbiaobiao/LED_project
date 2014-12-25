@@ -6,6 +6,16 @@
 #include <dirent.h>
 #include <unistd.h>
 
+/**
+ * this is function to find a *.xml in the default path
+ * This is a detail description.
+ * @basepath	inArgName input argument description.
+ * @file_name	outArgName output argument description. 
+ * @retval	FLASE	³É¹¦
+ * @retval	OK	´íÎó
+ *
+ */
+
 boolean find_new_file(char *basePath,char *file_name)
 {
      DIR *dir;
@@ -22,7 +32,6 @@ boolean find_new_file(char *basePath,char *file_name)
 	int file_name_num = 0;
      while ((ptr=readdir(dir)) != NULL)
      {
-		memset(file_name, '\0', sizeof(file_name));
 		if(!strcmp(ptr->d_name,"."))
 			continue;	
 		if(!strcmp(ptr->d_name,".."))

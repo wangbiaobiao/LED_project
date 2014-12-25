@@ -167,6 +167,7 @@ boolean network_write(int sockfd, void* info,int write_len)
 			int i = 0;
 			for(i=0; i<has_write_len ; i++)
 				printf("%02x,",((unsigned char*)info)[i]);
+			printf("\n");                                         //add by biaobiaoss
 			if(!network_send_semaphore_v())
 			{
 				printf("network_send_semaphore_p fail\n");

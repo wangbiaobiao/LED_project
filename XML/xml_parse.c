@@ -172,6 +172,7 @@ boolean strategy_parse(const char* filename)
 	while(1)
 	{
 		strategy_id++;
+		/*startDate*/
 		memset(xpathExpr,'\0',256);
 		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/startDate", strategy_id);
 		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
@@ -187,6 +188,7 @@ boolean strategy_parse(const char* filename)
 			return construct_timetable(current_strategy_list);
 		}
 		strcpy(current_strategy_list[strategy_id-1].startDate,find_str);
+		/*endDate*/
 		memset(xpathExpr,'\0',256);
 		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/endDate", strategy_id);
 		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
@@ -195,6 +197,7 @@ boolean strategy_parse(const char* filename)
 				return FALSE;
 		}
 		strcpy(current_strategy_list[strategy_id-1].endDate,find_str);
+		/*startTime*/
 		memset(xpathExpr,'\0',256);
 		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/startTime", strategy_id);
 		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
@@ -203,6 +206,7 @@ boolean strategy_parse(const char* filename)
 				return FALSE;
 		}
 		strcpy(current_strategy_list[strategy_id-1].startTime,find_str);
+		/*endTime*/
 		memset(xpathExpr,'\0',256);
 		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/endTime", strategy_id);
 		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
@@ -212,6 +216,8 @@ boolean strategy_parse(const char* filename)
 		}
 		strcpy(current_strategy_list[strategy_id-1].endTime,find_str);
 		printf("=======%s=======\n",current_strategy_list[0].startDate);
+
+		
 		//current_strategy_list = (strategy_list*)realloc(current_strategyy_list,strategy_list_node_size*(strategy_id+1));
 		strategy_list* t_strategy_list  = NULL;
 		t_strategy_list = (strategy_list*)realloc(current_strategy_list,5000);
@@ -319,6 +325,7 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 boolean config_init()
 {
 	boolean t_return = TRUE;
+	//get info from cmdline of boot_args
 	int cmdline_fd = open("/proc/cmdline",O_RDONLY);
 	char t_cmdline_buff[256], cmdline_info[512];
 	memset(network_number, '\0', 16);
@@ -348,6 +355,8 @@ boolean config_init()
 	strcpy(network_number, cmdline_info+z+9);//加上"eth0:off:"  的长度
 	network_number[6] = '\0';
 	printf("network_number:%s\n",network_number);
+	
+	//excete xml
 	memset(strategy_file_name,'\0',sizeof(strategy_file_name));
 	if(!find_new_file(STRATEGY_FILE_DIR,strategy_file_name))
 	{
@@ -383,6 +392,7 @@ strategy_parse_point:
 		
 	}
 	memset(protocl_file_name, '\0', 128);
+	//protocl document
 	if(!find_new_file(PROTOCOL_FILE_DIR,protocl_file_name))
 	{
 			protocol_version = 'E';

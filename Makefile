@@ -1,11 +1,11 @@
 #/opt/arm9260/bin/arm-none-linux-gnueabi-gcc -I ./xml/include/libxml2  -L ./xml/lib  -lxml2 -lm -lpthread *.c -oledPro
-VPATH = Common:Extern_lib:FTP:Network:RS485:Time:XML
+VPATH = Common:Extern_lib:FTP:Network:RS485:Time:XML:Ini
 cc = arm-none-linux-gnueabi-gcc
-override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH))) -I ./Extern_lib/xml/include/libxml2/ -I Extern_lib/sqlite3/include
+override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH))) -I ./Extern_lib/xml/include/libxml2/ -I Extern_lib/sqlite3/include -I./Ini/
 override LDFLAGS +=  -L ./Extern_lib/xml/lib  -lxml2 -lm -lpthread
 
 
-ledPro_file = main.o common.o get_file_name.o link_list.o  semaphore.o ftp.o network.o protocol_parse.o rs485.o serial.o mytime.o xml_parse.o
+ledPro_file = main.o common.o get_file_name.o link_list.o  semaphore.o ftp.o network.o protocol_parse.o rs485.o serial.o mytime.o xml_parse.o ini.o ini_parse.o
 
 ledPro:$(ledPro_file)
 	$(cc)  $^ -o $@ $(CFLAGS)  $(LDFLAGS) 
@@ -44,6 +44,12 @@ mytime.o:mytime.c
 	$(cc)  -c $^ -o $@ $(CFLAGS)
 	
 xml_parse.o:xml_parse.c
+	$(cc)  -c $^ -o $@ $(CFLAGS)
+
+ini.o:ini.c
+	$(cc)  -c $^ -o $@ $(CFLAGS)
+
+ini_parse.o:ini_parse.c
 	$(cc)  -c $^ -o $@ $(CFLAGS)
 
 clean:	

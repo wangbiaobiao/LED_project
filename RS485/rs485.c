@@ -257,7 +257,7 @@ boolean timing( )
 	if(t_current_time == -1)
 		return FALSE;
 	cmd_packet return_packet;
-	signal(SIGALRM,signal_outime);
+	signal(SIGALRM,signal_outime);                            //???what't the mean
 	struct itimerval itv;
 	PNode t_head = GetHead(timetable);
 	PNode t_node = t_head;

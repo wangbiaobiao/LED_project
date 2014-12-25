@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "protocol_parse.h"
 #include "rs485.h"
+#include "ini_parse.h"
 
 //void* check_status(void *arg)
 //{
@@ -139,6 +140,9 @@ int main(int argc, char * argv[])
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
+
+	parse_ini("my_test.ini");
+
 	if(!semaphore_init())
 	{
 		printf("semaphore_init fail\n");	
@@ -158,7 +162,8 @@ int main(int argc, char * argv[])
 	if(pthread_create(&message_init_pid, NULL, message_init, NULL))
 	{
 		printf("create message_init pthread error .... \n");
-	}	
+	}
+	
 	if(pthread_create(&send_heartbeat_packet_pid, NULL, send_heartbeat_packet, NULL))
 	{
 		printf("create send_heartbeat_packet pthread error .... \n");
@@ -167,14 +172,15 @@ int main(int argc, char * argv[])
 	{
 		printf("create recieve_server_packet pthread error .... \n");
 	}
-	if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
+	while(1);
+	/*if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
 	{
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
 	}	
 	printf("blue day\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
-	pthread_join(perform_automatic_strategy_pid,NULL);
+	pthread_join(perform_automatic_strategy_pid,NULL);*/
 		
 //	setTime_init();
 //	memset(_set_time,'\0',sizeof(_set_time));
