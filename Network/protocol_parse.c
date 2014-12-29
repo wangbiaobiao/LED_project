@@ -445,9 +445,11 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 		message_head[2] = 2;
 		message_head[8] = 0;
 		message_head[9] = GETWAY_TO_SERVER_HEARTBEAT_TYPE;
+		//what????
 		for(i=0; i<xml_length_type_100_size; i++)
 			message_len += xml_length_type_100[i];
 		t_message_len = message_len;
+		
 	}	
 	else if(type == GETWAY_TO_SERVER_CONTROL)
 	{
@@ -487,28 +489,30 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 	if(!get_localtime(time_str))
 		return FALSE;
 	sprintf(message_body,"%s",time_str);
+	//time
 	padding_string(message_body, CREATE_DATA_TIME_START+14 ,CREATE_DATA_TIME_END+1 , 0x00);
 	printf("CREATE_DATA_TIME:%d,%s,\n",CREATE_DATA_TIME_END+1-strlen(time_str),message_body);	
-	
+	//voltage
 	padding_string(message_body, GATEWAY_VOLTAGE_START ,GATEWAY_VOLTAGE_END+1 , 0x00);
 	printf("GATEWAY_VOLTAGE:%s\n",GATEWAY_VOLTAGE_START+message_body);
-	
+	//power stat
 	padding_string(message_body, GATEWAY_POWER_STATUS_START ,GATEWAY_POWER_STATUS_END+1 , 0x00);
 	printf("GATEWAY_POWER_STATUS:%s\n",GATEWAY_POWER_STATUS_START+message_body);
-
+	//temprature state
 	padding_string(message_body, GATEWAY_TEMPERATURE_START ,GATEWAY_TEMPERATURE_END+1 , 0x00);
 	printf("GATEWAY_TEMPERATURE_START:%s\n",GATEWAY_TEMPERATURE_START+message_body);	
-	
+	//electic stat
 	padding_string(message_body, GATEWAY_ELECTRIC_START ,GATEWAY_ELECTRIC_END+1 , 0x00);
 	printf("GATEWAY_ELECTRIC_START:%s\n",GATEWAY_ELECTRIC_START+message_body);
-	
+	//version stat
 	padding_string(message_body, GATEWAY_VERSION_START ,GATEWAY_VERSION_END+1 , 0x00);
 	printf("GATEWAY_VERSION_START:%s\n",GATEWAY_VERSION_START+message_body);
-
+	
 	t_len = sprintf(message_body+GATEWAY_STRATEGY_VERSION_START,"%s","ledProv1");
+	//stragey version stat
 	padding_string(message_body, GATEWAY_STRATEGY_VERSION_START+t_len ,GATEWAY_STRATEGY_VERSION_END+1 , 0x00);
 	printf("GATEWAY_STRATEGY_VERSION_START:%s\n",GATEWAY_STRATEGY_VERSION_START+message_body);
-	
+	//type stat
 	padding_string(message_body, GATEWAY_ERROR_TYPE_START ,GATEWAY_ERROR_TYPE_END+1 , 0x00);
 	printf("GATEWAY_ERROR_TYPE_START:%s\n",GATEWAY_ERROR_TYPE_START+message_body);
 
@@ -546,6 +550,7 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 		if(voltage_packet.SensorData != -1)
 			voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
 		t_len = sprintf(t_message_body,"%d,%d,%d,%d,%d", NodeAddress, control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
+		//led stat
 		myUint8cpy( message_body, t_message_body, t_start, t_len);
 		printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+message_body, message_body[t_start+1]);
 		padding_string(message_body, t_start+t_len ,t_end , 0x00);
@@ -836,6 +841,7 @@ void* send_heartbeat_packet(void * arg)
 			printf("\n==================");
 			j = 14;
 		//	for(j=0;j<message_len+MESSAGE_HEAD_LEN+2;j++)
+		//debug
 			{
 				int n=0,m=0;
 				for(n=0; n<xml_length_type_100_size; n++)
