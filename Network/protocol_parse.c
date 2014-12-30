@@ -455,7 +455,7 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 		//what????
 		/*for(i=0; i<xml_length_type_100_size; i++)
 			message_len += xml_length_type_100[i];*/
-		message_len = xml_length_type_100_size + 102 -8;
+		message_len = (xml_length_type_100_size - 8) * 64 + 102;
 		t_message_len = message_len;
 		
 	}	
@@ -586,7 +586,7 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 			relay_packet.SensorData = 0;
 		if(voltage_packet.SensorData != -1)
 			voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
-		t_len = sprintf(t_message_body,"%d,%d,%d,%d,%d", NodeAddress, control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
+		t_len = sprintf(t_message_body,"%d,%d,%d,%d,%d", *(NodeAddress+i-8), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
 		//led stat
 		myUint8cpy( message_body, t_message_body, t_start, t_len);
 		printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+message_body, message_body[t_start+1]);
