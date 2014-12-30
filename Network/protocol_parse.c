@@ -8,6 +8,7 @@
 #include "get_file_name.h"
 #include "mytime.h"
 #include "rs485.h"
+#include "ini_parse.h"
 struct sockaddr_in message_server_addr; 
 
 int message_sockfd = -1; 
@@ -29,7 +30,7 @@ int volatile is_recieve_message_packet = 0;
 int volatile is_recieve_exception_packet = 0;
 
 
-boolean xml_config(char* _protocl_file_name)
+/*boolean xml_config(char* _protocl_file_name)
 {
 	if(!find_new_file(PROTOCOL_FILE_DIR,_protocl_file_name))
 		return FALSE;
@@ -38,6 +39,12 @@ boolean xml_config(char* _protocl_file_name)
 		return FALSE;
 	if(-1 == (xml_length_type_301_size = xml_parse(_protocl_file_name, 301, xml_length_type_301)))
 		return FALSE;
+	return TRUE;
+}*/
+boolean xml_config(char* _protocl_file_name)
+{
+	xml_length_type_100_size = point_config.beiting.len+point_config.dapai.len+point_config.yuanhu.len - 3 + 8;
+	xml_length_type_301_size = point_config.beiting.len+point_config.dapai.len+point_config.yuanhu.len - 3 + 1;
 	return TRUE;
 }
 void* message_init(void* arg)
@@ -446,8 +453,9 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 		message_head[8] = 0;
 		message_head[9] = GETWAY_TO_SERVER_HEARTBEAT_TYPE;
 		//what????
-		for(i=0; i<xml_length_type_100_size; i++)
-			message_len += xml_length_type_100[i];
+		/*for(i=0; i<xml_length_type_100_size; i++)
+			message_len += xml_length_type_100[i];*/
+		message_len = xml_length_type_100_size + 102 -8;
 		t_message_len = message_len;
 		
 	}	
@@ -483,8 +491,37 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 boolean construct_heartbeat_packet_body(unsigned char* message_body)
 {
 	data_packet relay_packet={.SensorData = -1}, voltage_packet = {.SensorData = -1};
-	int NodeAddress = 1, node_abnormal = 0, t_len = 0;
+	int node_abnormal = 0, t_len = 0;
+	int i = 0;
 	char t_message_body[512], time_str[32] = "";
+
+	int *NodeAddress = (int *)malloc(sizeof(int)*(xml_length_type_100_size - 8));
+	for(i  = 1;i < point_config.beiting.len; i++)
+	{
+		*(NodeAddress + i - 1)  = point_config.beiting.point[i];
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.beiting.point[i]);
+	}
+	NodeAddress  = NodeAddress + point_config.beiting.len-1;
+	
+	for(i  = 1;i < point_config.dapai.len; i++)
+	{
+		*(NodeAddress + i - 1 ) = point_config.dapai.point[i];
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.dapai.point[i]);
+	}
+	NodeAddress  = NodeAddress + point_config.dapai.len-1;
+	
+	for(i  = 1;i < point_config.yuanhu.len; i++)
+	{
+		*(NodeAddress + i - 1 ) = point_config.yuanhu.point[i];
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.yuanhu.point[i]);
+	}
+	NodeAddress  = NodeAddress - (point_config.dapai.len-1) - (point_config.beiting.len-1);
+	
+	for(i = 0;i < xml_length_type_100_size -8; i++)
+	{
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",*(NodeAddress+i));
+	}
+	
 	memset(message_body, '\0', 4096);
 	if(!get_localtime(time_str))
 		return FALSE;
@@ -520,15 +557,15 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 //	int has_message_len = 0;
 //	for(i=0; i<8; i++)
 //		has_message_len +=  xml_length_type_100[i];
-	int i = 0,t_start = LIGHTBOX1_START, t_end = LIGHTBOX1_START+xml_length_type_100[8];
+	int t_start = LIGHTBOX1_START, t_end = LIGHTBOX1_START+64;
 	for(i=8; i<xml_length_type_100_size; i++)
 	{
 //			//strcat(message_body,"1100201");
 		//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-		NodeAddress = i-7+64;//1016 backup:NodeAddress = i-7;
-		printf("xml_len:%d,NodeAddress:%d\n",xml_length_type_100_size,NodeAddress);
+		//NodeAddress = i-7+64;//1016 backup:NodeAddress = i-7;
+		printf("xml_len:%d,NodeAddress:%d\n",xml_length_type_100_size,*(NodeAddress+i-8));
 		printf("============================");
-		if(!send_cmd(NodeAddress, CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+		if(!send_cmd((*(NodeAddress+i-8)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
 		{
 			node_abnormal |= 1;
 			relay_packet.SensorData = -1;
@@ -556,8 +593,9 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 		padding_string(message_body, t_start+t_len ,t_end , 0x00);
 		printf("%d,LIGHTBOX1:%s\n",t_end-t_start,t_start+message_body);
 		t_start = t_end;
-		t_end = t_start + xml_length_type_100[i];
+		t_end = t_start + 64;
 	}
+	free(NodeAddress);
 	return TRUE;
 }
 
@@ -825,10 +863,15 @@ void* send_heartbeat_packet(void * arg)
 		message_info[message_len+MESSAGE_HEAD_LEN] = 0xcc;
 		message_info[message_len+MESSAGE_HEAD_LEN+1] = getUint8BCC(message_info,14, message_len+MESSAGE_HEAD_LEN+1);
 		int i;
-		printf("************************\n");
+		printf("************write****\n");
 		for(i = 0;i < message_len+MESSAGE_HEAD_LEN+2; i++)
 		{
 			printf("%x ",message_info[i]);
+		}
+		printf("\n************body***\n");
+		for(i = 0;i < message_len; i++)
+		{
+			printf("%x ",message_body[i]);
 		}
 		printf("\n");
 		if(!network_write(message_sockfd, message_info, message_len+MESSAGE_HEAD_LEN+2))
@@ -844,14 +887,14 @@ void* send_heartbeat_packet(void * arg)
 		//debug
 			{
 				int n=0,m=0;
-				for(n=0; n<xml_length_type_100_size; n++)
+				/*for(n=0; n<xml_length_type_100_size; n++)
 				{
 					for(m=0; m<xml_length_type_100[n]; m++)
 					{
 						printf("%02x ",message_info[j++]);
 					}
 					printf("\n");
-				}
+				}*/
 			}
 			printf("%02x,%02x\n",message_info[j],message_info[j+1]);
 			printf("==================\n");
