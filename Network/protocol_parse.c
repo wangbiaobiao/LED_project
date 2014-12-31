@@ -178,7 +178,8 @@ int parse_control_packet(unsigned char* info)
 		else
 		{
 			 continue;
-		}	
+		}
+		printf("#######################################%d\n",atoi(t_split_info[0]));
 		if(!send_cmd(atoi(t_split_info[0]), t_cmd, (void*)(&return_packet)))
 		{
 			printf("shit you !!!!!!!! no work!!!!!!!!!\n");
@@ -662,23 +663,51 @@ boolean send_unregist_packet()
 
 void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 {
-		int i = 0,t_end = t_start+64, NodeAddress = 0, node_abnormal = 0, t_len = 0;
+		int i = 0,t_end = t_start+64, node_abnormal = 0, t_len = 0;
 		unsigned char t_led_status_info[512];
+
+
+		int *NodeAddress = (int *)malloc(sizeof(int)*(xml_length_type_100_size - 8));
+		for(i  = 1;i < point_config.beiting.len; i++)
+		{
+			*(NodeAddress + i - 1)  = point_config.beiting.point[i];
+			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.beiting.point[i]);
+		}
+		NodeAddress  = NodeAddress + point_config.beiting.len-1;
+		
+		for(i  = 1;i < point_config.dapai.len; i++)
+		{
+			*(NodeAddress + i - 1 ) = point_config.dapai.point[i];
+			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.dapai.point[i]);
+		}
+		NodeAddress  = NodeAddress + point_config.dapai.len-1;
+		
+		for(i  = 1;i < point_config.yuanhu.len; i++)
+		{
+			*(NodeAddress + i - 1 ) = point_config.yuanhu.point[i];
+			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.yuanhu.point[i]);
+		}
+		NodeAddress  = NodeAddress - (point_config.dapai.len-1) - (point_config.beiting.len-1);
+		
+		for(i = 0;i < xml_length_type_100_size -8; i++)
+		{
+			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",*(NodeAddress+i));
+		}
+	
 		data_packet relay_packet={.SensorData = -1}, voltage_packet = {.SensorData = -1};
 		printf("\n===============nodes:%d=============\n",nodes);
 		for(i=0; i<nodes; i++)
 		{
 	//			//strcat(message_body,"1100201");
 			//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-			NodeAddress = i+1+64;
-			if(!send_cmd(NodeAddress, CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+			if(!send_cmd((*(NodeAddress+i)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
 			{
 				node_abnormal |= 1;
 				relay_packet.SensorData = -1;
 			}
 			if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
 				node_abnormal |= 1;
-			if(!send_cmd(NodeAddress, CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
+			if(!send_cmd((*(NodeAddress+i)), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
 			{
 				node_abnormal |= 1;
 				voltage_packet.SensorData = -1;
@@ -692,7 +721,7 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 			if(voltage_packet.SensorData != -1)
 				voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
 			memset(t_led_status_info, '\0', 512);
-			t_len = sprintf(t_led_status_info,"%d,%d,%d,%d,%d", NodeAddress, control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
+			t_len = sprintf(t_led_status_info,"%d,%d,%d,%d,%d", (*(NodeAddress+i)), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
 			myUint8cpy( led_status_info, t_led_status_info, t_start, t_len);
 			printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+led_status_info, led_status_info[t_start+1]);
 			padding_string(led_status_info, t_start+t_len ,t_end , 0x00);
@@ -706,6 +735,7 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 			t_start = t_end;
 			t_end = t_start + 64;
 		}
+		free(NodeAddress);
 }
 void* send_heartbeat_packet(void * arg)
 {
@@ -1178,12 +1208,12 @@ void* return_control_packet(void * arg)
 		}
 		printf("//////////////////////////////////////////////\n");
 	}
-	printf("//////////////////////////////////////////////\n");
-	for(j=122+64*8;j<122+64*8+2;j++)
+	printf("//////////////return////////////////////////////////\n");
+	for(j = 0;j<122+64*8+2;j++)
 	{
 		printf("%02x,",_packet->return_info[j]);
 	}
-	printf("//////////////////////////////////////////////");
+	printf("//////////////////////////////////////////////\n");
 	if(!network_write(message_sockfd, _packet->return_info, _packet->info_len))
 	{
 			message_isConnected = 0;

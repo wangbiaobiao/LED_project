@@ -58,8 +58,8 @@ boolean send_cmd(unsigned char NodeAddress, unsigned char CmdInfo, void* return_
 	{
 		printf("rs485_semaphore_p fail\n");
 	}
-	if(NodeAddress<64)//1016
-		NodeAddress += 64;//1016
+	/*if(NodeAddress<64)//1016
+		NodeAddress += 64;//1016*/
 //	if(NodeAddress == -1)
 //	{
 //		if(!rs485_semaphore_v()) 
