@@ -573,7 +573,7 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 		}
 		if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
 			node_abnormal |= 1;
-		if(!send_cmd(NodeAddress, CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
+		if(!send_cmd(*(NodeAddress+i-8), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
 		{
 			node_abnormal |= 1;
 			voltage_packet.SensorData = -1;
