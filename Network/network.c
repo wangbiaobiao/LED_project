@@ -150,7 +150,7 @@ boolean network_write(int sockfd, void* info,int write_len)
 		current_write_len = write(sockfd, info, write_len - has_write_len);
 		if(current_write_len == -1)
 		{
-			printf("network_write fail \n");
+			printf("network_write fail:%s \n", strerror(errno));
 			int i = 0;
 			for(i=0; i<has_write_len ; i++)
 				printf("%02x,",((unsigned char*)info)[i]);
