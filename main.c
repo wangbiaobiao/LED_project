@@ -3,6 +3,7 @@
 #include "protocol_parse.h"
 #include "rs485.h"
 #include "ini_parse.h"
+#include "ftp.h"
 
 //void* check_status(void *arg)
 //{
@@ -115,6 +116,54 @@
 //		}
 //	}
 //}
+
+boolean my_parse_ini()
+{
+	char dir_name_info[128][128] = {"ini"};
+	int index = 0;
+
+	boolean t_return = TRUE;
+	//get info from cmdline of boot_args
+	int cmdline_fd = open("/proc/cmdline",O_RDONLY);
+	char t_cmdline_buff[256], cmdline_info[512];
+
+	memset(network_number, '\0', 16);
+	if(cmdline_fd == -1)
+		return FALSE;
+	memset(cmdline_info, '\0', 512);
+	memset(t_cmdline_buff, '\0', 256);
+	if(read(cmdline_fd, t_cmdline_buff,256)>0)
+	{
+	
+	strcat(cmdline_info,t_cmdline_buff);
+		memset(t_cmdline_buff, '\0', 256);
+	}
+	printf("network_number:%s,%d\n",cmdline_info,strlen(cmdline_info));
+	int t_len = strlen(cmdline_info), z = 0;
+	for(z=0; z<t_len-15; z++)	
+	{
+		if(cmdline_info[z] == 'e' && cmdline_info[z+1] == 't'&&
+		cmdline_info[z+2] == 'h' && cmdline_info[z+3] == '0')
+		 break;
+	}
+	if(t_len-15 == z)
+		return FALSE;
+	printf("=========%c============",cmdline_info[z]);
+	if( t_len < z+15)
+		return FALSE;
+	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È	
+	network_number[6] = '\0';
+	printf("network_number:%s\n",network_number);
+
+	if(get_file_from_server(dir_name_info, network_number))
+	{
+		printf("ftp get file success");
+	}
+
+	parse_ini(network_number);
+
+
+}
 pthread_t perform_automatic_strategy_pid = -1;
 
 int main(int argc, char * argv[])
@@ -141,7 +190,7 @@ int main(int argc, char * argv[])
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 
-	parse_ini("my_test.ini");
+	my_parse_ini("my_test.ini");
 
 	if(!semaphore_init())
 	{

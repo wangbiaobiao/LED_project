@@ -1,6 +1,6 @@
 #ifndef ____FTP_H___
 #define ____FTP_H___
-#include "common.h"
+//#include "common.h"
 
 typedef enum ftp_cmd_type
 {
