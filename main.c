@@ -221,15 +221,14 @@ int main(int argc, char * argv[])
 	{
 		printf("create recieve_server_packet pthread error .... \n");
 	}
-	while(1);
-	/*if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
+	if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
 	{
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
 	}	
 	printf("blue day\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
-	pthread_join(perform_automatic_strategy_pid,NULL);*/
+	pthread_join(perform_automatic_strategy_pid,NULL);
 		
 //	setTime_init();
 //	memset(_set_time,'\0',sizeof(_set_time));
