@@ -315,6 +315,7 @@ boolean timing( )
 		return TRUE;
 	}
 	time_printf(timetable_index->data.startMoment, timetable_index->data.endMoment);
+	//当时间大于开始时间并且小于结束时间时开灯，否则关灯
 	if(t_current_time > timetable_index->data.startMoment && t_current_time < timetable_index->data.endMoment)
 	{
 		printf("In the light of the time, turn on all the lights\n");

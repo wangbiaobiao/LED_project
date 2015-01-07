@@ -19,6 +19,7 @@ int xml_length_type_100_size = 0;
 int xml_length_type_301_size = 0;
 char protocl_file_name[128] = "";
 char strategy_file_name[128];
+char config_ini_name[128]="200001";
 unsigned char protocol_version = 0;
 
 int message_len = 0;
@@ -28,6 +29,8 @@ int volatile is_recieve_regist_packet = 0;
 int volatile is_recieve_unregist_packet = 0;
 int volatile is_recieve_message_packet = 0;
 int volatile is_recieve_exception_packet = 0;
+
+extern boolean my_parse_ini();
 
 
 /*boolean xml_config(char* _protocl_file_name)
@@ -302,7 +305,7 @@ boolean parse_return_code(int type)
 }
 boolean parse_heartbeat_packet(unsigned char * info)
 {
-	char t_info[10], t_time[20], t_version[16], current_version[16], t_strategy[32];
+	char t_info[10], t_time[20], t_version[16], current_version[16], t_strategy[32],t_config[16];
 	char dir_name_info[128][128] = {"ledrelay"};//, app_name[128] = "ledPro";
 	struct tm t_temp;
 	char t_cmd[128];
@@ -402,6 +405,24 @@ boolean parse_heartbeat_packet(unsigned char * info)
 			else
 				printf("update t_strategy version %s fail\n", t_strategy);
 		}
+
+		
+		info_leek += 32;
+		myUint8cpy(t_config, info+info_leek, 0, 16);
+		printf("#########################################################################################################update config version %s good\n",t_config);
+//		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
+//			printf("find_new_file fail\n");
+		
+		if(strcmp(t_config,config_ini_name))
+		{
+			strcpy(config_ini_name,t_config);
+			printf("#########################################################################################################update config version %s good\n",t_config);
+			if(my_parse_ini())
+				printf("#########################################################################################################update config version %s good\n",t_config);
+			else
+				printf("update config version %s fail\n", t_config);
+		}
+		
 	}
 	else
 		return FALSE;
@@ -559,43 +580,52 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 //	for(i=0; i<8; i++)
 //		has_message_len +=  xml_length_type_100[i];
 	int t_start = LIGHTBOX1_START, t_end = LIGHTBOX1_START+64;
-	for(i=8; i<xml_length_type_100_size; i++)
+	int j = 0;
+	void build_body(int len,char ch)
 	{
-//			//strcat(message_body,"1100201");
-		//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-		//NodeAddress = i-7+64;//1016 backup:NodeAddress = i-7;
-		printf("xml_len:%d,NodeAddress:%d\n",xml_length_type_100_size,*(NodeAddress+i-8));
-		printf("============================");
-		if(!send_cmd((*(NodeAddress+i-8)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+		int i = 0;
+		for(i=1; i<len; i++)
 		{
-			node_abnormal |= 1;
-			relay_packet.SensorData = -1;
+	//			//strcat(message_body,"1100201");
+			//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
+			//NodeAddress = i-7+64;//1016 backup:NodeAddress = i-7;
+			printf("xml_len:%d,NodeAddress:%d\n",xml_length_type_100_size,*(NodeAddress+j));
+			printf("============================");
+			if(!send_cmd((*(NodeAddress+j)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+			{
+				node_abnormal |= 1;
+				relay_packet.SensorData = -1;
+			}
+			if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
+				node_abnormal |= 1;
+			if(!send_cmd(*(NodeAddress+j), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
+			{
+				node_abnormal |= 1;
+				voltage_packet.SensorData = -1;
+			}
+			if(voltage_packet.Status != CMD_GET_NODE_LED_VOLTAGE)
+				node_abnormal |= 1;
+			memset(t_message_body, '\0', 512);
+			if(relay_packet.SensorData == 0)
+				relay_packet.SensorData = 1;
+			else if(relay_packet.SensorData == 1)
+				relay_packet.SensorData = 0;
+			if(voltage_packet.SensorData != -1)
+				voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
+			t_len = sprintf(t_message_body,"%d,%d,%d,%d,%d,%c", *(NodeAddress+j), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData,ch);
+			//led stat
+			myUint8cpy( message_body, t_message_body, t_start, t_len);
+			printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+message_body, message_body[t_start+1]);
+			padding_string(message_body, t_start+t_len ,t_end , 0x00);
+			printf("%d,LIGHTBOX1:%s\n",t_end-t_start,t_start+message_body);
+			t_start = t_end;
+			t_end = t_start + 64;
+			j++;
 		}
-		if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
-			node_abnormal |= 1;
-		if(!send_cmd(*(NodeAddress+i-8), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
-		{
-			node_abnormal |= 1;
-			voltage_packet.SensorData = -1;
-		}
-		if(voltage_packet.Status != CMD_GET_NODE_LED_VOLTAGE)
-			node_abnormal |= 1;
-		memset(t_message_body, '\0', 512);
-		if(relay_packet.SensorData == 0)
-			relay_packet.SensorData = 1;
-		else if(relay_packet.SensorData == 1)
-			relay_packet.SensorData = 0;
-		if(voltage_packet.SensorData != -1)
-			voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
-		t_len = sprintf(t_message_body,"%d,%d,%d,%d,%d", *(NodeAddress+i-8), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
-		//led stat
-		myUint8cpy( message_body, t_message_body, t_start, t_len);
-		printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+message_body, message_body[t_start+1]);
-		padding_string(message_body, t_start+t_len ,t_end , 0x00);
-		printf("%d,LIGHTBOX1:%s\n",t_end-t_start,t_start+message_body);
-		t_start = t_end;
-		t_end = t_start + 64;
 	}
+	build_body(point_config.beiting.len,'b');
+	build_body(point_config.dapai.len,'d');
+	build_body(point_config.yuanhu.len,'y');
 	free(NodeAddress);
 	return TRUE;
 }

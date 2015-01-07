@@ -119,7 +119,7 @@
 
 boolean my_parse_ini()
 {
-	char dir_name_info[128][128] = {"ini"};
+	char dir_name_info[128][128] = {"ledstationconfig"};
 	int index = 0;
 
 	boolean t_return = TRUE;
@@ -189,9 +189,8 @@ int main(int argc, char * argv[])
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
-
-	my_parse_ini("my_test.ini");
-
+	
+	my_parse_ini();
 	if(!semaphore_init())
 	{
 		printf("semaphore_init fail\n");	
