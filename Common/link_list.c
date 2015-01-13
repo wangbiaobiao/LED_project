@@ -10,6 +10,7 @@ Position MakeNode(Item* i)
 	{
 		(p->data).startMoment = i->startMoment;
 		(p->data).endMoment = i->endMoment;
+		(p->data).node_addr = i->node_addr;
 		p->previous = NULL;
 		p->next = NULL;
 	}	

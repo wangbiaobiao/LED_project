@@ -249,6 +249,7 @@ void signal_outime(int signo)
 //	delay.tv_usec = 0; // s
 //	select(0, NULL, NULL, NULL, &delay);
 //}
+
 boolean timing( )
 {
 	printf("===========timing=========\n");
@@ -265,89 +266,24 @@ boolean timing( )
 	for(; t_node->next != NULL; t_node=t_node->next)
 	{
 		time_printf(t_node->data.startMoment, t_node->data.endMoment);
+		printf("addr is %d\n",t_node->data.node_addr);
 	}
-	if(GetSize(timetable) == 0)
+	t_node = t_head;
+	for(; t_node->next != NULL; t_node=t_node->next)
 	{
-		for(j=0; j<xml_length_type_301_size-1; j++)
+		if(t_node->data.startMoment < t_current_time < t_node->data.endMoment)
 		{
-			send_cmd(j+1, 2, &return_packet);
+			send_cmd((unsigned char)t_node->data.node_addr, 1, &return_packet);
 		}
-		return TRUE;
-	}
-	//还没有到开灯的时间，关闭所有的灯
-	/***************************************************************/
-	timetable_index = t_head->next;
-	/***************************************************************/
-	if(timetable_index->data.startMoment > t_current_time)
-	{
-		printf("No time to turn on the lights, turn off all the lights\n");
-		for(j=0; j<xml_length_type_301_size-1; j++)
+		else
 		{
-			send_cmd(j+1, 2, &return_packet);
-		}
-		itv.it_value.tv_sec = timetable_index->data.startMoment - t_current_time;
-		itv.it_interval.tv_usec = 0;
-		itv.it_interval.tv_sec =  0;
-		itv.it_value.tv_usec = 0;
-		setitimer(ITIMER_REAL,&itv,NULL);
-		return TRUE;
-	}
-	//t_node->next != NULL为了不越界
-	//int t_timetable_size = GetSize(timetable);
-	for(t_node=timetable_index; t_node->next != NULL; t_node=t_node->next)
-	{
-		t_moment_1 = t_current_time - t_node->data.startMoment;
-		t_moment_2 = t_current_time - t_node->next->data.startMoment;
-		if(t_moment_1 >= 0 && t_moment_2 <= 0)
-			break;
-	}
-	//timetable_index 记录下找到时刻表的位置
-	timetable_index = t_node;
-	//没有需要开灯的时间
-	if(t_node == GetTail(timetable)->previous)
-	{
-		printf("No need to turn on the lights, turn off all the lights\n");
-		//把所有的灯关闭
-		for(j=0; j<xml_length_type_301_size-1; j++)
-		{
-			send_cmd(j+1, 2, &return_packet);
-		}
-		return TRUE;
-	}
-	time_printf(timetable_index->data.startMoment, timetable_index->data.endMoment);
-	//当时间大于开始时间并且小于结束时间时开灯，否则关灯
-	if(t_current_time > timetable_index->data.startMoment && t_current_time < timetable_index->data.endMoment)
-	{
-		printf("In the light of the time, turn on all the lights\n");
-		for(j=0; j<xml_length_type_301_size-1; j++)
-		{
-			send_cmd(j+1, 1, &return_packet);
-		}
+			
+			send_cmd((unsigned char)t_node->data.node_addr, 2, &return_packet);
 		
-		itv.it_value.tv_sec = timetable_index->next->data.startMoment- t_current_time;
-		itv.it_interval.tv_usec = 0;
-		itv.it_interval.tv_sec =  0;
-		itv.it_value.tv_usec = 0;
-		setitimer(ITIMER_REAL,&itv,NULL);	
-		return TRUE;
-	}
-	else 
-	{
-		printf("Not in the light of the time, turn off all the lights\n");
-	time_printf(timetable_index->next->data.startMoment, timetable_index->next->data.endMoment);
-		for(j=0; j<xml_length_type_301_size-1; j++)
-		{
-			send_cmd(j+1, 2, &return_packet);
-		}
 		
-		itv.it_value.tv_sec = timetable_index->next->data.startMoment - t_current_time;
-		itv.it_interval.tv_usec = 0;
-		itv.it_interval.tv_sec =  0;
-		itv.it_value.tv_usec = 0;
-		setitimer(ITIMER_REAL,&itv,NULL);
-		return TRUE;	
+		}
 	}
-	return FALSE;	
+	return TRUE;
 }
 
 void *perform_automatic_strategy(void * arg)

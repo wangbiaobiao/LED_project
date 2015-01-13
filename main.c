@@ -207,7 +207,7 @@ int main(int argc, char * argv[])
 	printf("\n\n==================GetSize:%d======================\n\n",GetSize(timetable));
 	
 	pthread_t send_heartbeat_packet_pid, recieve_server_packet_pid, message_init_pid; 
-	if(pthread_create(&message_init_pid, NULL, message_init, NULL))
+	/*if(pthread_create(&message_init_pid, NULL, message_init, NULL))
 	{
 		printf("create message_init pthread error .... \n");
 	}
@@ -219,7 +219,7 @@ int main(int argc, char * argv[])
 	if(pthread_create(&recieve_server_packet_pid, NULL, recieve_server_packet_pthread, NULL))
 	{
 		printf("create recieve_server_packet pthread error .... \n");
-	}
+	}*/
 	if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
 	{
 		printf("create pthread error .... \n");

@@ -160,74 +160,114 @@ boolean strategy_parse(const char* filename)
 	if(timetable != NULL)
 		DestroyList(timetable);
 	timetable = InitList();
+	int node_id = 0;
+	int number = 0;
 	int strategy_list_node_size = sizeof(strategy_list);
 	current_strategy_list = (strategy_list*)malloc(strategy_list_node_size);
 	xml_open();
 	int strategy_id = 0, i =0, result = -1;
 	char xpathExpr[256];
 	char find_str[64];
+	char find_addr[64];
 	char path[256] = "/app/strategy/";
 	strcat(path,filename);
 	memset(xpathExpr,'\0',256);
+	printf("is being parseing xml ............... %d\n",current_strategy_list);
 	while(1)
 	{
-		strategy_id++;
+		node_id++;
+		strategy_id = 0;
 		/*startDate*/
 		memset(xpathExpr,'\0',256);
-		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/startDate", strategy_id);
-		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
+		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]",node_id);
+		printf("is being parseing xml ............... %s\n",xpathExpr);
+		if((result = execute_xpath_expression(path, xpathExpr, "node_address", find_addr, 0)) == -1)
 		{
 				xml_close();
 				return FALSE;
 		}
+		printf("is being parseing xml ............... %s\n",find_addr);
 		if(result == -4)
 		{
 			xml_close();
-			strategy_list_size = strategy_id-1;
+			//strategy_list_size = strategy_id-1;
+			strategy_list_size = number;
 			printf("result = -4, size:%d\n",strategy_list_size);
 			return construct_timetable(current_strategy_list);
 		}
-		strcpy(current_strategy_list[strategy_id-1].startDate,find_str);
-		/*endDate*/
-		memset(xpathExpr,'\0',256);
-		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/endDate", strategy_id);
-		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
+		else
 		{
-				xml_close();
-				return FALSE;
+			printf("is being parseing xml ............... %s\n",find_addr);
+			for(;;)
+			{
+				strategy_id++;
+				number++;
+				/*addr*/
+				strcpy(current_strategy_list[number-1].node_addr,find_addr);
+				/*startDate*/
+				memset(xpathExpr,'\0',256);
+				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/startDate", node_id,strategy_id);
+				printf("node_id is %d,strategy_id is %d\n",node_id,strategy_id);
+				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				{
+						xml_close();
+						return FALSE;
+				}
+				if(result == -4)
+				{
+					number--;
+					break;
+				}
+				strcpy(current_strategy_list[number-1].startDate,find_str);
+				/*endDate*/
+				memset(xpathExpr,'\0',256);
+				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/endDate", node_id,strategy_id);
+				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				{
+						xml_close();
+						return FALSE;
+				}
+				strcpy(current_strategy_list[number-1].endDate,find_str);
+				/*startTime*/
+				memset(xpathExpr,'\0',256);
+				printf("very very %d\n",__LINE__);
+				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/startTime", node_id,strategy_id);
+				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				{
+						xml_close();
+						return FALSE;
+				}
+				printf("very very %d\n",__LINE__);
+				strcpy(current_strategy_list[number-1].startTime,find_str);
+				/*endTime*/
+				memset(xpathExpr,'\0',256);
+				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/endTime",node_id,strategy_id);
+				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				{
+						xml_close();
+						return FALSE;
+				}
+				strcpy(current_strategy_list[number-1].endTime,find_str);
+				
+				printf("=======%s=======\n",current_strategy_list[number-1].startDate);
+				printf("=======%s=======\n",current_strategy_list[number-1].endDate);
+				printf("=======%s=======\n",current_strategy_list[number-1].startTime);
+				printf("=======%s=======\n",current_strategy_list[number-1].endTime);
+				printf("=======%s=======\n",current_strategy_list[number-1].node_addr);
+				
+				//current_strategy_list = (strategy_list*)realloc(current_strategyy_list,strategy_list_node_size*(strategy_id+1));
+				strategy_list* t_strategy_list  = NULL;
+				t_strategy_list = (strategy_list*)realloc(current_strategy_list,strategy_list_node_size*10);
+				if(t_strategy_list == NULL)
+				{
+					xml_close();
+					return FALSE;
+				}
+				current_strategy_list = t_strategy_list;	
+				printf("======================");
+			}
+			
 		}
-		strcpy(current_strategy_list[strategy_id-1].endDate,find_str);
-		/*startTime*/
-		memset(xpathExpr,'\0',256);
-		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/startTime", strategy_id);
-		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
-		{
-				xml_close();
-				return FALSE;
-		}
-		strcpy(current_strategy_list[strategy_id-1].startTime,find_str);
-		/*endTime*/
-		memset(xpathExpr,'\0',256);
-		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/endTime", strategy_id);
-		if((result = execute_xpath_expression(path, xpathExpr, "", find_str, 1)) == -1)
-		{
-				xml_close();
-				return FALSE;
-		}
-		strcpy(current_strategy_list[strategy_id-1].endTime,find_str);
-		printf("=======%s=======\n",current_strategy_list[0].startDate);
-
-		
-		//current_strategy_list = (strategy_list*)realloc(current_strategyy_list,strategy_list_node_size*(strategy_id+1));
-		strategy_list* t_strategy_list  = NULL;
-		t_strategy_list = (strategy_list*)realloc(current_strategy_list,5000);
-		if(t_strategy_list == NULL)
-		{
-			xml_close();
-			return FALSE;
-		}
-		current_strategy_list = t_strategy_list;	
-		printf("======================");
 	}
 }
 
@@ -236,17 +276,36 @@ boolean construct_timetable(strategy_list * list)
 	int i, j;
 	for(i=0; i<strategy_list_size; i++)
 	{
+		printf("start date is %s\n",current_strategy_list[i].startDate);
+		printf("end date is %s\n",current_strategy_list[i].endDate);
+		printf("start time is %s\n",current_strategy_list[i].startTime);
+		printf("stop time is %s\n",current_strategy_list[i].endTime);
+		printf("nod addr is %s\n",current_strategy_list[i].node_addr);
+
+	}
+	for(i=0; i<strategy_list_size; i++)
+	{
 		if(!one_strategy_timetable(current_strategy_list[i].startDate, current_strategy_list[i].endDate,\
-			current_strategy_list[i].startTime, current_strategy_list[i].endTime))
+			current_strategy_list[i].startTime, current_strategy_list[i].endTime,current_strategy_list[i].node_addr))
 		{
 			printf("one_strategy_timetable fail\n");
 			return FALSE;
 		}
 	}
+	#ifdef DEBUG
+	PNode t_head = GetHead(timetable);
+	PNode t_node = t_head;
+	printf("GetSize:%d\n",GetSize(timetable));
+	for(; t_node->next != NULL; t_node=t_node->next)
+	{
+		time_printf(t_node->data.startMoment, t_node->data.endMoment);
+		printf("addr is %d\n",t_node->data.node_addr);
+	}
+	#endif
 	return TRUE;
 }
 
-boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, char* endTime)
+boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, char* endTime, char* nod_addr)
 {
 	printf("one_strategy_timetable:\nstartDate:%s, endDate:%s,\nstartTime:%s,endTime:%s\n",startDate,endDate,startTime, endTime);
    	int startData_startTime_count_second = -1, endDate_endTime_count_second = -1, endDate_startTime_count_second = -1, countSec = 0;
@@ -254,12 +313,17 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
    	char startDate_endTime[50] = {0};	
     char endDate_endTime[50] = {0};
 	char endDate_startTime[50] = {0};
+	int addr;
    	sprintf(startDate_startTime,"%s %s",startDate, startTime);
    	sprintf(startDate_endTime,"%s %s",startDate, endTime);
    	sprintf(endDate_endTime,"%s %s",endDate, endTime);
 	sprintf(endDate_startTime,"%s %s",endDate, startTime);
 	printf("startDate_startTime:%s, endDate_endTime:%s\n", startDate_startTime, endDate_endTime);
-	
+
+	addr = atoi(nod_addr);
+	#ifdef DEBUG
+	printf("*********************************************%d\n",addr);
+	#endif
    	int startDate_endTime_count_second = str2sec(time_format(startDate_endTime));
 	printf("%d\n",startDate_endTime_count_second );
    	if((startData_startTime_count_second = str2sec(time_format(startDate_startTime))) == -1)
@@ -312,6 +376,10 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 		t_position = ListTraverse(timetable, t_position, t_startTime);  
 		t_timemoment.startMoment = t_startTime;
 		t_timemoment.endMoment= t_startTime + start_end_sec;
+		t_timemoment.node_addr = addr;
+		#ifdef DEBUG
+		printf("####################################################%d\n",t_timemoment.node_addr);
+		#endif
 		t_node = MakeNode(&t_timemoment);
 		/*在链表中p位置之后插入新节点s*/  
 		InsAfter(timetable, t_position, t_node);  

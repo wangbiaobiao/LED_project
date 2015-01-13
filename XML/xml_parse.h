@@ -21,6 +21,7 @@ typedef struct strategy_list
 	char endDate[12];
 	char startTime[12];
 	char endTime[12];
+	char node_addr[12];
 }strategy_list;
 
 struct _strategy_Timetable;
@@ -44,7 +45,7 @@ void xml_close();
 int xml_parse(const char* filename, int type, int* xml_length);
 boolean strategy_parse(const char* filename);
 boolean construct_timetable(strategy_list * list);
-boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, char* endTime);	
+boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, char* endTime,char* nod_addr);	
 boolean config_init();
 
 #endif

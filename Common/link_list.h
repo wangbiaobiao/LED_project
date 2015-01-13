@@ -7,6 +7,7 @@ typedef struct _strategy_Timetable
 {
         int startMoment;
         int endMoment;
+		int node_addr;
 }strategy_Timetable;
 
 typedef struct Node* PNode;
