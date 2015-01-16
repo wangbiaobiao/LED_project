@@ -1,6 +1,6 @@
 #/opt/arm9260/bin/arm-none-linux-gnueabi-gcc -I ./xml/include/libxml2  -L ./xml/lib  -lxml2 -lm -lpthread *.c -oledPro
 VPATH = Common:Extern_lib:FTP:Network:RS485:Time:XML:Ini
-cc = arm-none-linux-gnueabi-gcc
+cc = arm-none-linux-gnueabi-gcc -g
 override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH))) -I ./Extern_lib/xml/include/libxml2/ -I Extern_lib/sqlite3/include -I./Ini/
 override LDFLAGS +=  -L ./Extern_lib/xml/lib  -lxml2 -lm -lpthread
 

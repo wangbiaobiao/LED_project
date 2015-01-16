@@ -270,7 +270,7 @@ boolean strategy_parse(const char* filename)
 		}
 	}
 }
-
+Position t_position;
 boolean construct_timetable(strategy_list * list)
 {
 	int i, j;
@@ -283,6 +283,7 @@ boolean construct_timetable(strategy_list * list)
 		printf("nod addr is %s\n",current_strategy_list[i].node_addr);
 
 	}
+	t_position = timetable->head;
 	for(i=0; i<strategy_list_size; i++)
 	{
 		if(!one_strategy_timetable(current_strategy_list[i].startDate, current_strategy_list[i].endDate,\
@@ -305,27 +306,23 @@ boolean construct_timetable(strategy_list * list)
 	return TRUE;
 }
 
+#define DEBUG
+
 boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, char* endTime, char* nod_addr)
 {
 	printf("one_strategy_timetable:\nstartDate:%s, endDate:%s,\nstartTime:%s,endTime:%s\n",startDate,endDate,startTime, endTime);
    	int startData_startTime_count_second = -1, endDate_endTime_count_second = -1, endDate_startTime_count_second = -1, countSec = 0;
    	char startDate_startTime[50] = {0};
-   	char startDate_endTime[50] = {0};	
     char endDate_endTime[50] = {0};
-	char endDate_startTime[50] = {0};
 	int addr;
    	sprintf(startDate_startTime,"%s %s",startDate, startTime);
-   	sprintf(startDate_endTime,"%s %s",startDate, endTime);
    	sprintf(endDate_endTime,"%s %s",endDate, endTime);
-	sprintf(endDate_startTime,"%s %s",endDate, startTime);
 	printf("startDate_startTime:%s, endDate_endTime:%s\n", startDate_startTime, endDate_endTime);
 
 	addr = atoi(nod_addr);
 	#ifdef DEBUG
 	printf("*********************************************%d\n",addr);
 	#endif
-   	int startDate_endTime_count_second = str2sec(time_format(startDate_endTime));
-	printf("%d\n",startDate_endTime_count_second );
    	if((startData_startTime_count_second = str2sec(time_format(startDate_startTime))) == -1)
 	{
 		return FALSE;
@@ -334,59 +331,42 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 	{
 		return FALSE;
 	}	
-	if((endDate_startTime_count_second = str2sec(time_format(endDate_startTime))) == -1)
-	{
-		return FALSE;
-	}	
 	
-	if(time(NULL) > endDate_endTime_count_second)
-	{
-		printf("stragety overtime,currenttime:%d,strategy_endTime%d\n",time(NULL),endDate_endTime_count_second);
-		return TRUE;
-	}
 	strategy_Timetable * t_timeTable = NULL;
-//	//timetable_size表示已经分配内存的天数
-	int t_days = (endDate_startTime_count_second - startData_startTime_count_second)/THE_NUMBER_OF_SECONDS_A_DAY;
-	printf("===========days%d============\n",t_days);
-//	t_timeTable = (strategy_Timetable * )realloc(timetable, t_days*sizeof(strategy_Timetable));
-//	if(t_timeTable == NULL)
-//	{
-//		printf("one_strategy_timetable realloc fail\n");
-//		return FALSE;
-//	}
-//	timetable = t_timeTable;
-    int start_end_sec = startDate_endTime_count_second - startData_startTime_count_second; 
-	//if(start_end_sec < 0)代表startDate_endTime是第二天
-	if(start_end_sec < 0)
-	{
-		printf("next day\n");
-		start_end_sec = THE_NUMBER_OF_SECONDS_A_DAY + start_end_sec;
-	}
-	printf("endDate_endTime_count_second:%d,startDate_endTime_count_second:%d,startData_startTime_count_second:%d,start_end_sec:%d\n",endDate_endTime_count_second,startDate_endTime_count_second,startData_startTime_count_second,start_end_sec);
+	
 	int t_startTime = startData_startTime_count_second;
 	strategy_Timetable t_timemoment;
-	Position t_position = GetHead(timetable), t_node;
-	printf("current time:%d\n",time(NULL));
-	while(1)
-	{
-		if(t_startTime > endDate_startTime_count_second)
-		{
-			break;
-		}
-		t_position = ListTraverse(timetable, t_position, t_startTime);  
-		t_timemoment.startMoment = t_startTime;
-		t_timemoment.endMoment= t_startTime + start_end_sec;
-		t_timemoment.node_addr = addr;
-		#ifdef DEBUG
-		printf("####################################################%d\n",t_timemoment.node_addr);
-		#endif
-		t_node = MakeNode(&t_timemoment);
-		/*在链表中p位置之后插入新节点s*/  
-		InsAfter(timetable, t_position, t_node);  
-		t_position = t_position->next;
-		t_startTime  += THE_NUMBER_OF_SECONDS_A_DAY;
-	}
+	
+	Position t_node;
+	
+	//t_position = ListTraverse(timetable, t_position, t_startTime);  
+	t_timemoment.startMoment = startData_startTime_count_second;
+	t_timemoment.endMoment= endDate_endTime_count_second;
+	t_timemoment.node_addr = addr;
+	
+	#ifdef DEBUG
+	printf("####################################################%d\n",t_timemoment.node_addr);
+	#endif
+	
+	
+	t_node = MakeNode(&t_timemoment);
+	/*在链表中p位置之后插入新节点s*/  
+	InsAfter(timetable, t_position, t_node);  
+	t_position = t_position->next;
 	printf("GetSize:%d\n",GetSize(timetable));
+
+	PNode t_head = GetHead(timetable);
+	PNode tt_node = t_head;
+	
+	#ifdef DEBUG
+	printf("GetSize:%d\n",GetSize(timetable));
+	for(; tt_node->next != NULL; tt_node=tt_node->next)
+	{
+		time_printf(tt_node->next->data.startMoment, tt_node->next->data.endMoment);
+		printf("addr is %d\n",tt_node->next->data.node_addr);
+	}
+	#endif
+	
 	return TRUE;
 }
 

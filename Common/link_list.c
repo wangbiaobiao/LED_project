@@ -172,12 +172,12 @@ void InsAfter(DList *plist, Position p, PNode s)
 {
 	s->next = p->next;
 	s->previous = p;
-	
+
+ 	p->next = s;
 	if(p->next != NULL)
 		p->next->previous = s;
-	p->next = s;
 	
-	if(p = GetTail(plist))
+	if(p == GetTail(plist))
 		plist->tail = s;
 	
 	plist->size++;

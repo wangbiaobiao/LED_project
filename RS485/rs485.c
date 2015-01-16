@@ -256,30 +256,43 @@ boolean timing( )
 	int i = 0, j = 0, t_moment_1 = 0, t_moment_2 = 0;
 	time_t t_current_time = time(NULL);
 	if(t_current_time == -1)
+	{
+		printf("can't get current time\n");
 		return FALSE;
+	}
 	cmd_packet return_packet;
 	signal(SIGALRM,signal_outime);                            //???what't the mean
 	struct itimerval itv;
 	PNode t_head = GetHead(timetable);
 	PNode t_node = t_head;
+
+	int node_start_day,node_end_day,node_start_time,node_end_time,current_day,current_time;
+
 	printf("GetSize:%d\n",GetSize(timetable));
 	for(; t_node->next != NULL; t_node=t_node->next)
 	{
-		time_printf(t_node->data.startMoment, t_node->data.endMoment);
-		printf("addr is %d\n",t_node->data.node_addr);
+		time_printf(t_node->next->data.startMoment, t_node->next->data.endMoment);
+		printf("addr is %d\n",t_node->next->data.node_addr);
 	}
 	t_node = t_head;
 	for(; t_node->next != NULL; t_node=t_node->next)
 	{
-		if(t_node->data.startMoment < t_current_time < t_node->data.endMoment)
+		node_start_day = t_node->next->data.startMoment / THE_NUMBER_OF_SECONDS_A_DAY;
+		node_end_day = t_node->next->data.endMoment / THE_NUMBER_OF_SECONDS_A_DAY;
+		node_start_time = t_node->next->data.startMoment - node_start_day * THE_NUMBER_OF_SECONDS_A_DAY;
+		node_end_time = t_node->next->data.endMoment- node_start_day * THE_NUMBER_OF_SECONDS_A_DAY;
+
+		current_day  = t_current_time / THE_NUMBER_OF_SECONDS_A_DAY;
+		current_time  = t_current_time - current_day * THE_NUMBER_OF_SECONDS_A_DAY;
+		
+		if((node_start_day < current_day) && (node_end_day > current_day) && 
+		   (node_start_time > current_time) && (node_end_time > current_time))
 		{
 			send_cmd((unsigned char)t_node->data.node_addr, 1, &return_packet);
 		}
 		else
 		{
-			
 			send_cmd((unsigned char)t_node->data.node_addr, 2, &return_packet);
-		
 		
 		}
 	}
@@ -301,7 +314,7 @@ void *perform_automatic_strategy(void * arg)
 		while(1)
 		{
 			timing();
-			sleep(60);
+			sleep(10);
 		}
 	}
 }
