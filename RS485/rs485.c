@@ -280,19 +280,25 @@ boolean timing( )
 		node_start_day = t_node->next->data.startMoment / THE_NUMBER_OF_SECONDS_A_DAY;
 		node_end_day = t_node->next->data.endMoment / THE_NUMBER_OF_SECONDS_A_DAY;
 		node_start_time = t_node->next->data.startMoment - node_start_day * THE_NUMBER_OF_SECONDS_A_DAY;
-		node_end_time = t_node->next->data.endMoment- node_start_day * THE_NUMBER_OF_SECONDS_A_DAY;
+		node_end_time = t_node->next->data.endMoment- node_end_day * THE_NUMBER_OF_SECONDS_A_DAY;
 
 		current_day  = t_current_time / THE_NUMBER_OF_SECONDS_A_DAY;
 		current_time  = t_current_time - current_day * THE_NUMBER_OF_SECONDS_A_DAY;
+
+		printf("startMoment is %d,endMoment%d\n",t_node->next->data.startMoment,t_node->next->data.endMoment);
 		
+		printf("node_start_day is %d,node_end_day is %d,node_start_time is %d,node_end_time is %d\n",node_start_day,node_end_day,node_start_time,node_end_time);
+		printf("current_day is %d,current_time%d\n",current_day,current_time);
 		if((node_start_day < current_day) && (node_end_day > current_day) && 
-		   (node_start_time > current_time) && (node_end_time > current_time))
+		   (node_start_time < current_time) && (node_end_time > current_time))
 		{
-			send_cmd((unsigned char)t_node->data.node_addr, 1, &return_packet);
+			printf("turn on is good\n");
+			send_cmd((unsigned char)t_node->next->data.node_addr, 1, &return_packet);
 		}
 		else
 		{
-			send_cmd((unsigned char)t_node->data.node_addr, 2, &return_packet);
+			printf("turn off is good\n");
+			send_cmd((unsigned char)t_node->next->data.node_addr, 2, &return_packet);
 		
 		}
 	}

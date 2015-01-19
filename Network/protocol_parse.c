@@ -409,7 +409,6 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		
 		info_leek += 32;
 		myUint8cpy(t_config, info+info_leek, 0, 16);
-		printf("#########################################################################################################update config version %s good\n",t_config);
 //		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
 //			printf("find_new_file fail\n");
 		
