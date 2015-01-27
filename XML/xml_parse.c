@@ -343,6 +343,7 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 	t_timemoment.startMoment = startData_startTime_count_second;
 	t_timemoment.endMoment= endDate_endTime_count_second;
 	t_timemoment.node_addr = addr;
+	t_timemoment.flag = 0;
 	
 	#ifdef DEBUG
 	printf("####################################################%d\n",t_timemoment.node_addr);

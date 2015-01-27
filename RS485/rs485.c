@@ -255,6 +255,11 @@ boolean timing( )
 	printf("===========timing=========\n");
 	int i = 0, j = 0, t_moment_1 = 0, t_moment_2 = 0;
 	time_t t_current_time = time(NULL);
+	struct c_addr
+	{
+		int addr;
+		int flag;
+	};
 	if(t_current_time == -1)
 	{
 		printf("can't get current time\n");
@@ -267,6 +272,8 @@ boolean timing( )
 	PNode t_node = t_head;
 
 	int node_start_day,node_end_day,node_start_time,node_end_time,current_day,current_time;
+	
+	struct c_addr * board_caddr= (struct c_addr *)malloc(GetSize(timetable)*sizeof(struct c_addr));
 
 	printf("GetSize:%d\n",GetSize(timetable));
 	for(; t_node->next != NULL; t_node=t_node->next)
@@ -275,7 +282,7 @@ boolean timing( )
 		printf("addr is %d\n",t_node->next->data.node_addr);
 	}
 	t_node = t_head;
-	for(; t_node->next != NULL; t_node=t_node->next)
+	for(i = 0; t_node->next != NULL; t_node=t_node->next,i++)
 	{
 		node_start_day = t_node->next->data.startMoment / THE_NUMBER_OF_SECONDS_A_DAY;
 		node_end_day = t_node->next->data.endMoment / THE_NUMBER_OF_SECONDS_A_DAY;
@@ -293,15 +300,54 @@ boolean timing( )
 		   (node_start_time < current_time) && (node_end_time > current_time))
 		{
 			printf("turn on is good\n");
-			send_cmd((unsigned char)t_node->next->data.node_addr, 1, &return_packet);
+			t_node->next->data.flag = 1;
+			//send_cmd((unsigned char)t_node->next->data.node_addr, 1, &return_packet);
+			board_caddr[i].addr = t_node->next->data.node_addr;
+			board_caddr[i].flag = 1;
+			
 		}
 		else
 		{
 			printf("turn off is good\n");
-			send_cmd((unsigned char)t_node->next->data.node_addr, 2, &return_packet);
+			//send_cmd((unsigned char)t_node->next->data.node_addr, 2, &return_packet);
+			board_caddr[i].addr = t_node->next->data.node_addr;
+			board_caddr[i].flag = 0;
 		
 		}
+			
 	}
+	int n_size = GetSize(timetable);
+		
+	for(i = 0; i < n_size; i++)
+	{
+		for(j = 0; j < n_size; j++)
+		{
+			if(board_caddr[i].addr == board_caddr[j].addr)
+			{
+				if(board_caddr[j].flag== 1)
+				{
+					board_caddr[i].flag= 1;
+				}
+			}
+		}
+	}
+	for(i = 0; i < n_size; i++)
+	{
+		printf("#############################################################\n");
+		printf("addr is %d, flag is %d\n",board_caddr[i].addr,board_caddr[i].flag);
+	}
+	for(i = 0; i < n_size; i++)
+	{
+		if(board_caddr[i].flag == 1)
+		{
+			send_cmd((unsigned char)board_caddr[i].addr, 1, &return_packet);
+		}
+		else
+		{
+			send_cmd((unsigned char)board_caddr[i].addr, 2, &return_packet);
+		}
+	}
+	free(board_caddr);
 	return TRUE;
 }
 

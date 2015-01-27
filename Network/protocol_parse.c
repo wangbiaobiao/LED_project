@@ -18,8 +18,10 @@ int xml_length_type_301[128]={0};
 int xml_length_type_100_size = 0;
 int xml_length_type_301_size = 0;
 char protocl_file_name[128] = "";
-char strategy_file_name[128];
-char config_ini_name[128]="200001";
+char strategy_file_name[128] ="";
+char config_ini_name[128]="";
+char gate_way_number[128];
+
 unsigned char protocol_version = 0;
 
 int message_len = 0;
@@ -305,20 +307,27 @@ boolean parse_return_code(int type)
 }
 boolean parse_heartbeat_packet(unsigned char * info)
 {
+	
 	char t_info[10], t_time[20], t_version[16], current_version[16], t_strategy[32],t_config[16];
 	char dir_name_info[128][128] = {"ledrelay"};//, app_name[128] = "ledPro";
+	char path[128]={0};
+	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$heaat_beat$$$$$$$$$$$$$$$$$\n");
+	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$heaat_beat$$$$$$$$$$$$$$$$$\n");
+	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$heaat_beat$$$$$$$$$$$$$$$$$\n");
 	struct tm t_temp;
 	char t_cmd[128];
 	int info_leek = 0;
 	int packet_len = parse_message_head(info);
 	if(-1 == packet_len)
 		return FALSE;
+	//消息头
 	info_leek += MESSAGE_HEAD_LEN;
 	if(-1 == packet_len)
 		return FALSE;
 	myUint8cpy(t_info, info+info_leek, 0, 8);
 	if(parse_return_code(atoi(t_info)))
 	{
+		//时间消息
 		info_leek += 8;
 		myUint8cpy(t_time, info+info_leek, 0, 20);
 		if(!calibrateTime(t_time))
@@ -326,6 +335,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 //#define STRATEGY_FILE_DIR "/app/strategy/"
 
 //#define PROTOCOL_FILE_DIR "/app/protocol/"
+		//中继器新版本
 		info_leek += 20;
 		myUint8cpy(t_version, info+info_leek, 0, 16);
 	//	strcat(app_name, t_version);
@@ -335,7 +345,8 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		memset(t_app_name,'\0',128);
 		strcat(t_app_name,"ledPro");
 		strcat(t_app_name,t_version);
-		if(strcmp(t_version,GETWAY_VERSION))
+		//发现网关的新版本
+		/*if(strcmp(t_version,GETWAY_VERSION))
 		{
 			if(get_file_from_server(dir_name_info, t_app_name))
 			{
@@ -355,31 +366,36 @@ boolean parse_heartbeat_packet(unsigned char * info)
 			}
 			else
 				printf("update getway version %s fail\n", t_version);
-		}
+		}*/
+		//发现策略的新版本
 		info_leek += 16;
 		myUint8cpy(t_strategy, info+info_leek, 0, 32);
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$%d$$$$%d$$$$$\n",t_strategy[0],t_strategy[1]);
 //		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
 //			printf("find_new_file fail\n");
 		if(strcmp(t_strategy,strategy_file_name))
 		{
 			memset(dir_name_info[0], '\0', 128);
 			strcpy(dir_name_info[0],"strategy");
-			if(get_file_from_server(dir_name_info, t_strategy))
+			if(get_file_from_server(dir_name_info, gate_way_number))
 			{
 				printf("update t_strategy version %s success\n", t_strategy);
+				printf("$$$$$$$$$$$%s$$$$$$$$$$$$$$$$$%s\n",gate_way_number,t_strategy);
+				sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_strategy);
+				mySystem(t_cmd);
 				sprintf(t_cmd,"mv /app/%s /app/strategy/", t_strategy);
 				mySystem(t_cmd);
 				sleep(3);
 					//sleep(1);
 				memset(t_cmd, '\0', 128);
-				sprintf(t_cmd,"rm /app/strategy/%s",strategy_file_name);
-				mySystem(t_cmd);
+				//sprintf(t_cmd,"rm /app/strategy/%s",strategy_file_name);
+				//mySystem(t_cmd);
 				
 				sleep(3);
 				memset(strategy_file_name, '\0', 128);
 				strcpy(strategy_file_name,t_strategy);
 				timetable_index = 0;
-				if(!strategy_parse(strategy_file_name))
+				if(!strategy_parse(t_strategy))
 				{
 					printf("parse_heartbeat_packet strategy_parse fail\n");
 				}
@@ -405,18 +421,30 @@ boolean parse_heartbeat_packet(unsigned char * info)
 			else
 				printf("update t_strategy version %s fail\n", t_strategy);
 		}
-
-		
+		//发现配置文件的新版本
 		info_leek += 32;
 		myUint8cpy(t_config, info+info_leek, 0, 16);
 //		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
 //			printf("find_new_file fail\n");
-		
+
+		memset(dir_name_info[0], '\0', 128);
+		strcpy(dir_name_info[0],"ledstationconfig");
 		if(strcmp(t_config,config_ini_name))
 		{
 			strcpy(config_ini_name,t_config);
+			if(get_file_from_server(dir_name_info, gate_way_number))
+			{
+				printf("ftp get file success");
+			}
+
+			sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_config);
+			mySystem(t_cmd);
+			sprintf(t_cmd,"mv /app/%s /app/ini/", t_config);
+			mySystem(t_cmd);
+
+			sprintf(path,"/app/ini/%s", t_config);
 			printf("#########################################################################################################update config version %s good\n",t_config);
-			if(my_parse_ini())
+			if(!parse_ini(path))
 				printf("#########################################################################################################update config version %s good\n",t_config);
 			else
 				printf("update config version %s fail\n", t_config);
@@ -922,7 +950,7 @@ void* send_heartbeat_packet(void * arg)
 		message_info[message_len+MESSAGE_HEAD_LEN] = 0xcc;
 		message_info[message_len+MESSAGE_HEAD_LEN+1] = getUint8BCC(message_info,14, message_len+MESSAGE_HEAD_LEN+1);
 		int i;
-		printf("************write****\n");
+		printf("************head****\n");
 		for(i = 0;i < message_len+MESSAGE_HEAD_LEN+2; i++)
 		{
 			printf("%x ",message_info[i]);
@@ -1138,12 +1166,14 @@ boolean recieve_server_packet()
 					int info_leek = stc_info[2]+3;
 					memset(led_status_info, '\0', 4096);
 					myUint8cpy(led_status_info, stc_info, 0, info_leek);
+					//控制消息头
 					construct_packet_head(led_status_info+info_leek, GETWAY_TO_SERVER_CONTROL);
 					led_status_info[info_leek+10] = t_recieve_info[10];
 					led_status_info[info_leek+11] = t_recieve_info[11];
 					led_status_info[info_leek+12] = t_recieve_info[12];
 					led_status_info[info_leek+13] = t_recieve_info[13];
 					info_leek += MESSAGE_HEAD_LEN;
+					//ret code
 					if(nodes != 0)
 					{
 						led_status_info[info_leek] = '2';
@@ -1157,10 +1187,12 @@ boolean recieve_server_packet()
 						led_status_info[info_leek+2] = '1';
 					}
 					info_leek += 8;
+					//led的信息 ************************there is bad**********************************
 					int t_info_leek = info_leek+t_packet_len-2;
 					get_led_node_status(led_status_info+info_leek, 0, nodes);
 					led_status_info[t_info_leek] = 0xcc;
 					led_status_info[t_info_leek+1] = getUint8BCC(info_leek-8+led_status_info, 0, t_info_leek+1);
+					
 					pthread_t t_return_control_packet_pid; 
 					_return_control_packet *_packet = (_return_control_packet *)malloc(sizeof(_return_control_packet));
 					myUint8cpy(_packet->return_info, led_status_info, 0, t_info_leek+2);

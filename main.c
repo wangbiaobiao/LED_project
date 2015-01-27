@@ -5,6 +5,7 @@
 #include "ini_parse.h"
 #include "ftp.h"
 
+extern char gate_way_number[128];
 //void* check_status(void *arg)
 //{
 //	while(1)
@@ -119,7 +120,6 @@
 
 boolean my_parse_ini()
 {
-	char dir_name_info[128][128] = {"ledstationconfig"};
 	int index = 0;
 
 	boolean t_return = TRUE;
@@ -151,16 +151,21 @@ boolean my_parse_ini()
 	printf("=========%c============",cmdline_info[z]);
 	if( t_len < z+15)
 		return FALSE;
-	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È	
-	network_number[6] = '\0';
-	printf("network_number:%s\n",network_number);
+	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
 
-	if(get_file_from_server(dir_name_info, network_number))
+	memset(gate_way_number, '\0', 128);
+	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
+	network_number[6] = '\0';
+	gate_way_number[6] = '\0';
+	printf("network_number:%s\n",network_number);
+	
+	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$gate_way_number$$$$$%s\n",gate_way_number);
+	/*if(get_file_from_server(dir_name_info, network_number))
 	{
 		printf("ftp get file success");
 	}
 
-	parse_ini(network_number);
+	parse_ini(network_number);*/
 
 
 }
@@ -216,7 +221,7 @@ int main(int argc, char * argv[])
 	{
 		printf("create send_heartbeat_packet pthread error .... \n");
 	}			
-	if(pthread_create(&recieve_server_packet_pid, NULL, recieve_server_packet_pthread, NULL))
+	/*if(pthread_create(&recieve_server_packet_pid, NULL, recieve_server_packet_pthread, NULL))
 	{
 		printf("create recieve_server_packet pthread error .... \n");
 	}
@@ -224,7 +229,7 @@ int main(int argc, char * argv[])
 	{
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
-	}	
+	}*/	
 	printf("blue day\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
 	pthread_join(perform_automatic_strategy_pid,NULL);

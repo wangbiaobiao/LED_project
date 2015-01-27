@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "common.h"
 #include "semaphore.h"
+#include <errno.h>
 
 int rs485_sem_id = -1;
 int network_send_sem_id = -1;
@@ -35,13 +36,22 @@ boolean set_semvalue(void)
     union semun sem_union;
     sem_union.val = 1;
     if(semctl(rs485_sem_id, 0, SETVAL, sem_union) == -1)
+    {
+    	printf("rs485_sem_id:%s\n", strerror(errno));
 		return FALSE;
+	}
 	
     if(semctl(network_send_sem_id, 0, SETVAL, sem_union) == -1)
+    {
+    	printf("rs485_sem_id:%s\n", strerror(errno));
 		return FALSE;	
-
+    }
 	if(semctl(network_recieve_sem_id, 0, SETVAL, sem_union) == -1)
+	{
+    	printf("rs485_sem_id:%s\n", strerror(errno));
 		return FALSE;	
+	}
+	return TRUE;
 }
 
 void del_semvalue(void)
