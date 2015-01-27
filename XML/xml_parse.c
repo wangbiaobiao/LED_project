@@ -9,6 +9,7 @@ strategy_list * current_strategy_list = NULL;
 int strategy_list_size = 0;
 char network_number[16];
 DList* timetable = NULL;
+extern char gate_way_number[128];
 
 void xml_open()
 {   
@@ -416,12 +417,12 @@ boolean config_init()
 			memset(dir_name_info[0], '\0', 128);
 			strcpy(dir_name_info[0],"strategy");
 			
-			if(get_file_from_server(dir_name_info, DEFAULT_STRATEGY_VERSION))
+			if(get_file_from_server(dir_name_info, gate_way_number))
 			{
-				printf("update t_strategy version %s success\n", DEFAULT_STRATEGY_VERSION);
-				sprintf(t_cmd,"mv /app/%s /app/strategy/", DEFAULT_STRATEGY_VERSION);
+				printf("update t_strategy version %s success\n", gate_way_number);
+				sprintf(t_cmd,"mv /app/%s /app/strategy/", gate_way_number);
 				mySystem(t_cmd);
-				strcpy(strategy_file_name,DEFAULT_STRATEGY_VERSION);
+				strcpy(strategy_file_name,gate_way_number);
 				goto strategy_parse_point;
 			}
 			else

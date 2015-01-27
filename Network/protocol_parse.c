@@ -20,7 +20,7 @@ int xml_length_type_301_size = 0;
 char protocl_file_name[128] = "";
 char strategy_file_name[128] ="";
 char config_ini_name[128]="";
-char gate_way_number[128];
+extern char gate_way_number[128];
 
 unsigned char protocol_version = 0;
 

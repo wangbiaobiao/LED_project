@@ -5,7 +5,7 @@
 #include "ini_parse.h"
 #include "ftp.h"
 
-extern char gate_way_number[128];
+char gate_way_number[128];
 //void* check_status(void *arg)
 //{
 //	while(1)
@@ -151,11 +151,9 @@ boolean my_parse_ini()
 	printf("=========%c============",cmdline_info[z]);
 	if( t_len < z+15)
 		return FALSE;
-	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
-
+	
 	memset(gate_way_number, '\0', 128);
 	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
-	network_number[6] = '\0';
 	gate_way_number[6] = '\0';
 	printf("network_number:%s\n",network_number);
 	
@@ -221,11 +219,11 @@ int main(int argc, char * argv[])
 	{
 		printf("create send_heartbeat_packet pthread error .... \n");
 	}			
-	/*if(pthread_create(&recieve_server_packet_pid, NULL, recieve_server_packet_pthread, NULL))
+	if(pthread_create(&recieve_server_packet_pid, NULL, recieve_server_packet_pthread, NULL))
 	{
 		printf("create recieve_server_packet pthread error .... \n");
 	}
-	if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
+	/*if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
 	{
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
