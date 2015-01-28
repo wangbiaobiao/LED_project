@@ -346,7 +346,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		strcat(t_app_name,"ledPro");
 		strcat(t_app_name,t_version);
 		//发现网关的新版本
-		/*if(strcmp(t_version,GETWAY_VERSION))
+		if(strcmp(t_version,GETWAY_VERSION))
 		{
 			if(get_file_from_server(dir_name_info, t_app_name))
 			{
@@ -366,35 +366,38 @@ boolean parse_heartbeat_packet(unsigned char * info)
 			}
 			else
 				printf("update getway version %s fail\n", t_version);
-		}*/
+		}
 		//发现策略的新版本
 		info_leek += 16;
 		myUint8cpy(t_strategy, info+info_leek, 0, 32);
-		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$%d$$$$%d$$$$$\n",t_strategy[0],t_strategy[1]);
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$$$$$%d$$$$$\n",t_strategy[0]);
 //		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
 //			printf("find_new_file fail\n");
 		if(strcmp(t_strategy,strategy_file_name))
 		{
 			memset(dir_name_info[0], '\0', 128);
 			strcpy(dir_name_info[0],"strategy");
+			printf("###################%s###############%s\n",dir_name_info,gate_way_number);
 			if(get_file_from_server(dir_name_info, gate_way_number))
 			{
 				printf("update t_strategy version %s success\n", t_strategy);
 				printf("$$$$$$$$$$$%s$$$$$$$$$$$$$$$$$%s\n",gate_way_number,t_strategy);
 				sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_strategy);
 				mySystem(t_cmd);
+				sleep(2);
 				sprintf(t_cmd,"mv /app/%s /app/strategy/", t_strategy);
 				mySystem(t_cmd);
-				sleep(3);
+				sleep(2);
 					//sleep(1);
 				memset(t_cmd, '\0', 128);
-				//sprintf(t_cmd,"rm /app/strategy/%s",strategy_file_name);
-				//mySystem(t_cmd);
-				
-				sleep(3);
+				sprintf(t_cmd,"rm /app/strategy/%s",strategy_file_name);
+				mySystem(t_cmd);
+				sleep(2);
 				memset(strategy_file_name, '\0', 128);
 				strcpy(strategy_file_name,t_strategy);
-				timetable_index = 0;
+				//timetable_index = 0;
+				//current_strategy_list = 0;
+				printf("-------------------------------------------------------\n");
 				if(!strategy_parse(t_strategy))
 				{
 					printf("parse_heartbeat_packet strategy_parse fail\n");
@@ -431,23 +434,34 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		strcpy(dir_name_info[0],"ledstationconfig");
 		if(strcmp(t_config,config_ini_name))
 		{
+
+		
 			strcpy(config_ini_name,t_config);
 			if(get_file_from_server(dir_name_info, gate_way_number))
 			{
 				printf("ftp get file success");
-			}
-
-			sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_config);
-			mySystem(t_cmd);
-			sprintf(t_cmd,"mv /app/%s /app/ini/", t_config);
-			mySystem(t_cmd);
-
-			sprintf(path,"/app/ini/%s", t_config);
-			printf("#########################################################################################################update config version %s good\n",t_config);
-			if(!parse_ini(path))
+				printf("gate_way_number%s************t_config%s\n",gate_way_number,t_config);
+				sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_config);
+				mySystem(t_cmd);
+				sleep(2);
+				sprintf(t_cmd,"mv /app/%s /app/ini/", t_config);
+				mySystem(t_cmd);
+				
+				memset(t_cmd, '\0', 128);
+				sprintf(t_cmd,"rm /app/ini/%s",config_ini_name);
+				mySystem(t_cmd);
+				
+				sprintf(path,"/app/ini/%s", t_config);
 				printf("#########################################################################################################update config version %s good\n",t_config);
-			else
-				printf("update config version %s fail\n", t_config);
+				if(!parse_ini(path))
+				{
+					printf("#########################################################################################################update config version %s good\n",t_config);
+				}
+				else
+				{
+					printf("update config version %s fail\n", t_config);
+				}
+			}
 		}
 		
 	}

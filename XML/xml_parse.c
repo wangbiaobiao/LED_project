@@ -156,10 +156,10 @@ int xml_parse(const char* filename, int type, int* xml_length)
 }
 boolean strategy_parse(const char* filename)
 {
-	if(current_strategy_list != NULL)
+	/*if(current_strategy_list != NULL)
 		free(current_strategy_list);
 	if(timetable != NULL)
-		DestroyList(timetable);
+		DestroyList(timetable);*/
 	timetable = InitList();
 	int node_id = 0;
 	int number = 0;

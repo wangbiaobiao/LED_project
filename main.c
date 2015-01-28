@@ -5,7 +5,8 @@
 #include "ini_parse.h"
 #include "ftp.h"
 
-char gate_way_number[128];
+char gate_way_number[128] = {0};
+extern char config_ini_name[128];
 //void* check_status(void *arg)
 //{
 //	while(1)
@@ -125,7 +126,10 @@ boolean my_parse_ini()
 	boolean t_return = TRUE;
 	//get info from cmdline of boot_args
 	int cmdline_fd = open("/proc/cmdline",O_RDONLY);
+	char dir_name_info[128][128];
 	char t_cmdline_buff[256], cmdline_info[512];
+	char path[128];
+	char t_cmd[128];
 
 	memset(network_number, '\0', 16);
 	if(cmdline_fd == -1)
@@ -154,18 +158,49 @@ boolean my_parse_ini()
 	
 	memset(gate_way_number, '\0', 128);
 	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
+	memset(network_number, '\0', 128);
+	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
+	network_number[6] = '\0';
 	gate_way_number[6] = '\0';
 	printf("network_number:%s\n",network_number);
 	
+	memset(dir_name_info[0], '\0', 128);
+	strcpy(dir_name_info[0],"ledstationconfig");
+	
+
 	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$gate_way_number$$$$$%s\n",gate_way_number);
-	/*if(get_file_from_server(dir_name_info, network_number))
+	/*if(get_file_from_server(dir_name_info, gate_way_number))
 	{
 		printf("ftp get file success");
 	}
-
-	parse_ini(network_number);*/
-
-
+	sprintf(t_cmd,"mv /app/%s /app/ini/",network_number);
+	mySystem(t_cmd);
+	sleep(2);
+	sprintf(path,"/app/ini/%s",network_number);
+	parse_ini(path);
+	*/
+	if(find_new_file(INI_FILE_DIR,config_ini_name))
+	{
+		sprintf(path,"/app/ini/%s",config_ini_name);
+		parse_ini(path);
+	}
+	else{
+		if(get_file_from_server(dir_name_info, gate_way_number))
+		{
+			printf("ftp get file success");
+		sprintf(t_cmd,"mv /app/%s /app/ini/",network_number);
+		mySystem(t_cmd);
+		sleep(2);
+		sprintf(path,"/app/ini/%s",network_number);
+		parse_ini(path);
+		}
+		else
+		{
+			printf("ini init fail\n");
+			exit(0);
+		}
+		
+	}
 }
 pthread_t perform_automatic_strategy_pid = -1;
 
@@ -223,11 +258,11 @@ int main(int argc, char * argv[])
 	{
 		printf("create recieve_server_packet pthread error .... \n");
 	}
-	/*if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
+	if(pthread_create(&perform_automatic_strategy_pid, NULL, perform_automatic_strategy, NULL))
 	{
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
-	}*/	
+	}	
 	printf("blue day\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
 	pthread_join(perform_automatic_strategy_pid,NULL);
