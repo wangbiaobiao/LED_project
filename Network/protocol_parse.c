@@ -767,41 +767,51 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 	
 		data_packet relay_packet={.SensorData = -1}, voltage_packet = {.SensorData = -1};
 		printf("\n===============nodes:%d=============\n",nodes);
-		for(i=0; i<nodes; i++)
+		int j = 0;
+		void build_body(int len,char ch)
 		{
-	//			//strcat(message_body,"1100201");
-			//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-			if(!send_cmd((*(NodeAddress+i)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+			int i = 0; 
+			for(i=1; i<len; i++)
 			{
-				node_abnormal |= 1;
-				relay_packet.SensorData = -1;
+	//				//strcat(message_body,"1100201");
+				//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
+				if(!send_cmd((*(NodeAddress+j)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
+				{
+					node_abnormal |= 1;
+					relay_packet.SensorData = -1;
+				}
+				if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
+					node_abnormal |= 1;
+				if(!send_cmd((*(NodeAddress+j)), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
+				{
+					node_abnormal |= 1;
+					voltage_packet.SensorData = -1;
+				}
+				if(voltage_packet.Status != CMD_GET_NODE_LED_VOLTAGE)
+					node_abnormal |= 1;
+				if(relay_packet.SensorData == 0)
+					relay_packet.SensorData = 1;
+				else if(relay_packet.SensorData == 1)
+					relay_packet.SensorData = 0;
+				if(voltage_packet.SensorData != -1)
+					voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
+				memset(t_led_status_info, '\0', 512);
+				t_len = sprintf(t_led_status_info,"%d,%d,%d,%d,%d,%c", (*(NodeAddress+j)), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData, ch);
+				myUint8cpy( led_status_info, t_led_status_info, t_start, t_len);
+				printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+led_status_info, led_status_info[t_start+1]);
+				padding_string(led_status_info, t_start+t_len ,t_end , 0x00);
+				printf("%d,LIGHTBOX1:%s\n",t_end-t_start,t_start+led_status_info);
+				t_start = t_end;
+				t_end = t_start + 64;
+				j++;
 			}
-			if(relay_packet.Status != CMD_GET_NODE_LED_STATUS)
-				node_abnormal |= 1;
-			if(!send_cmd((*(NodeAddress+i)), CMD_GET_NODE_LED_VOLTAGE,(void*)(&voltage_packet)))
-			{
-				node_abnormal |= 1;
-				voltage_packet.SensorData = -1;
-			}
-			if(voltage_packet.Status != CMD_GET_NODE_LED_VOLTAGE)
-				node_abnormal |= 1;
-			if(relay_packet.SensorData == 0)
-				relay_packet.SensorData = 1;
-			else if(relay_packet.SensorData == 1)
-				relay_packet.SensorData = 0;
-			if(voltage_packet.SensorData != -1)
-				voltage_packet.SensorData = voltage_packet.SensorData*24/1000; 
-			memset(t_led_status_info, '\0', 512);
-			t_len = sprintf(t_led_status_info,"%d,%d,%d,%d,%d", (*(NodeAddress+i)), control_type, relay_packet.SensorData, node_abnormal, voltage_packet.SensorData);
-			myUint8cpy( led_status_info, t_led_status_info, t_start, t_len);
-			printf("%d,LIGHTBOX1:%s,%c\n",t_end-t_start,t_start+led_status_info, led_status_info[t_start+1]);
-			padding_string(led_status_info, t_start+t_len ,t_end , 0x00);
-			printf("%d,LIGHTBOX1:%s\n",t_end-t_start,t_start+led_status_info);
-			t_start = t_end;
-			t_end = t_start + 64;
 		}
-		for(; i<=8; i++)
+		build_body(point_config.beiting.len,'b');
+		build_body(point_config.dapai.len,'d');
+		build_body(point_config.yuanhu.len,'y');
+		for(; j<=8; j++)
 		{
+			printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@t_start is %d@@@@@@@t_start is %d\n",t_start,t_end);
 			padding_string(led_status_info, t_start,t_end , 0x00);
 			t_start = t_end;
 			t_end = t_start + 64;
