@@ -346,6 +346,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		strcat(t_app_name,"ledPro");
 		strcat(t_app_name,t_version);
 		//发现网关的新版本
+		printf("###########################################GETWAY_VERSION is %s t_version  is %s \n", GETWAY_VERSION,t_version);
 		if(strcmp(t_version,GETWAY_VERSION))
 		{
 			if(get_file_from_server(dir_name_info, t_app_name))
@@ -365,7 +366,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 					//sleep(1);
 			}
 			else
-				printf("update getway version %s fail\n", t_version);
+				printf("update getway version %s %s fail\n", t_version,t_app_name);
 		}
 		//发现策略的新版本
 		info_leek += 16;
@@ -434,23 +435,25 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		strcpy(dir_name_info[0],"ledstationconfig");
 		if(strcmp(t_config,config_ini_name))
 		{
-
-		
-			strcpy(config_ini_name,t_config);
 			if(get_file_from_server(dir_name_info, gate_way_number))
 			{
 				printf("ftp get file success");
 				printf("gate_way_number%s************t_config%s\n",gate_way_number,t_config);
+				
+				memset(t_cmd, '\0', 128);
 				sprintf(t_cmd,"mv /app/%s /app/%s", gate_way_number,t_config);
 				mySystem(t_cmd);
 				sleep(2);
+				
+				memset(t_cmd, '\0', 128);
 				sprintf(t_cmd,"mv /app/%s /app/ini/", t_config);
 				mySystem(t_cmd);
-				
+				sleep(2);
 				memset(t_cmd, '\0', 128);
 				sprintf(t_cmd,"rm /app/ini/%s",config_ini_name);
 				mySystem(t_cmd);
-				
+				sleep(2);
+				strcpy(config_ini_name,t_config);
 				sprintf(path,"/app/ini/%s", t_config);
 				printf("#########################################################################################################update config version %s good\n",t_config);
 				if(!parse_ini(path))

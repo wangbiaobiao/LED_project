@@ -1,7 +1,7 @@
 #ifndef ____PROTOCOL_PARSE_H____
 #define ____PROTOCOL_PARSE_H____
 #include "common.h"
-#define GETWAY_VERSION "1.4"
+#define GETWAY_VERSION "1.6"
 #define MESSAGE_SERVER_IP "114.215.196.51" 
 #define MESSAGE_SERVER_PORT 5084
 

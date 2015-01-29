@@ -5,6 +5,13 @@
 #include "ini_parse.h"
 #include "ftp.h"
 
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+
 char gate_way_number[128] = {0};
 extern char config_ini_name[128];
 //void* check_status(void *arg)
@@ -119,6 +126,21 @@ extern char config_ini_name[128];
 //	}
 //}
 
+int ini_dir()
+{
+        if(opendir("/app/ini") == NULL)
+        {   
+                printf("ok\n");
+                mkdir("/app/ini",777);
+        }   
+        else
+        {   
+                printf("bad\n");
+        }   
+        return 0;
+
+}
+
 boolean my_parse_ini()
 {
 	int index = 0;
@@ -160,8 +182,8 @@ boolean my_parse_ini()
 	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
 	memset(network_number, '\0', 128);
 	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
-	network_number[6] = '\0';
-	gate_way_number[6] = '\0';
+	network_number[8] = '\0';
+	gate_way_number[8] = '\0';
 	printf("network_number:%s\n",network_number);
 	
 	memset(dir_name_info[0], '\0', 128);
@@ -227,7 +249,7 @@ int main(int argc, char * argv[])
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	
+	ini_dir();
 	my_parse_ini();
 	if(!semaphore_init())
 	{

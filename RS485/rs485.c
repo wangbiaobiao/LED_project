@@ -296,8 +296,8 @@ boolean timing( )
 		
 		printf("node_start_day is %d,node_end_day is %d,node_start_time is %d,node_end_time is %d\n",node_start_day,node_end_day,node_start_time,node_end_time);
 		printf("current_day is %d,current_time%d\n",current_day,current_time);
-		if((node_start_day < current_day) && (node_end_day > current_day) && 
-		   (node_start_time < current_time) && (node_end_time > current_time))
+		if((node_start_day <= current_day) && (node_end_day >= current_day) && 
+		   (node_start_time <= current_time) && (node_end_time >= current_time))
 		{
 			printf("turn on is good\n");
 			t_node->next->data.flag = 1;
@@ -326,7 +326,7 @@ boolean timing( )
 			{
 				if(board_caddr[j].flag== 1)
 				{
-					board_caddr[i].flag= 1;
+					board_caddr[i].flag = 1;
 				}
 			}
 		}
