@@ -676,13 +676,31 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 
 boolean send_regist_packet()
 {
-	int j = 0;
-	unsigned char regist_send_info[256] = {SXT_0,SXT_1,REGIST_APP_ID,protocol_version,0x0,0x0,0x0,0x16,0x0,0x14,0x0,0x0,0x0,0x02,0x0,0x08,0x32,0x30,0x30,0x30,0x30,0x31,0x0,0x08,0x31,0x32,0x33,0x34,0x35,0x36,0x0,0x04,0x30,0x30,0xcc,'\0'};//35
-	myUint8cpy(regist_send_info,network_number, 16, 6);
-	regist_send_info[35] = getUint8BCC(regist_send_info,14,35);
-	printf("BBC:%02x\n",getUint8BCC(regist_send_info,14,35));
+	int j = 0, t_info_leek = 14, network_number_len = strlen(network_number);
+
+	unsigned char terminalId_1 = (network_number_len+2)&0xff00 >> 16, terminalId_2 = (network_number_len+2)&0xff;
+	unsigned char regist_send_info[256] = {SXT_0,SXT_1,REGIST_APP_ID,protocol_version,0x0,0x0,0x0,network_number_len+16,0x0,0x14,0x0,0x0,0x0,0x02};
+	
+	unsigned char  regist_send_info_tail[] = {0x0,0x08,0x31,0x32,0x33,0x34,0x35,0x36,0x0,0x04,0x30,0x30,0xcc};
+	
+	myUint8cpy(regist_send_info, &terminalId_1, t_info_leek, 1);
+	t_info_leek += 1;
+	myUint8cpy(regist_send_info, &terminalId_2, t_info_leek, 1);
+	t_info_leek += 1;
+	myUint8cpy(regist_send_info, network_number, t_info_leek, network_number_len);
+	t_info_leek += network_number_len;
+	myUint8cpy(regist_send_info, regist_send_info_tail, t_info_leek, sizeof(regist_send_info_tail));
+	t_info_leek += sizeof(regist_send_info_tail);
+	
+	regist_send_info[t_info_leek] = getUint8BCC(regist_send_info,14,t_info_leek);
+	t_info_leek += 1;
+	printf("BBC:%02x\n", getUint8BCC(regist_send_info,14,t_info_leek));
+	for(j=0; j<t_info_leek; j++)
+	{
+		printf("%02x,", regist_send_info[j]);
+	}
 	is_recieve_regist_packet = 0;
-	if(network_write(message_sockfd,regist_send_info,36) == FALSE)
+	if(network_write(message_sockfd,regist_send_info,t_info_leek) == FALSE)
 	{
 		message_isConnected = 0;
 		return FALSE;
@@ -706,14 +724,31 @@ boolean send_regist_packet()
 
 boolean send_unregist_packet()
 {
-	int j = 0;
-	unsigned char regist_send_info[256] = {SXT_0,SXT_1,REGIST_APP_ID,protocol_version,0x0,0x0,0x0,0x12,0x0,0x16,0x0,0x0,0x0,0x02,0x0,0x08,0x32,0x30,0x30,0x30,0x30,0x31,0x0,0x08,0x31,0x32
-,0x33,0x34,0x35,0x36,0xcc,'\0'};//31
-	myUint8cpy(regist_send_info,network_number, 16, 6);
-	regist_send_info[31] = getUint8BCC(regist_send_info,14,31);
-	printf("BBC:%02x\n",getUint8BCC(regist_send_info,14,31));
+	int j = 0, t_info_leek = 14, network_number_len = strlen(network_number);
+	unsigned char terminalId_1 = (network_number_len+2)&0xff00 >> 16, terminalId_2 = (network_number_len+2)&0xff;
+	
+	unsigned char regist_send_info[256] = {SXT_0,SXT_1,REGIST_APP_ID,protocol_version,0x0,0x0,0x0,network_number_len+12,0x0,0x16,0x0,0x0,0x0,0x02};
+	unsigned char  regist_send_info_tail[] = {0x0,0x08,0x31,0x32,0x33,0x34,0x35,0x36,0xcc};
+
+	myUint8cpy(regist_send_info, &terminalId_1, t_info_leek, 1);
+	t_info_leek += 1;
+	myUint8cpy(regist_send_info, &terminalId_2, t_info_leek, 1);
+	t_info_leek += 1;
+	myUint8cpy(regist_send_info, network_number, t_info_leek, network_number_len);
+	t_info_leek += network_number_len;
+	myUint8cpy(regist_send_info, regist_send_info_tail, t_info_leek, sizeof(regist_send_info_tail));
+	t_info_leek += sizeof(regist_send_info_tail);
+	
+	regist_send_info[t_info_leek] = getUint8BCC(regist_send_info,14,t_info_leek);
+	t_info_leek += 1;
+	printf("BBC:%02x\n", getUint8BCC(regist_send_info,14,t_info_leek));
+	for(j=0; j<t_info_leek; j++)
+	{
+		printf("%02x,", regist_send_info[j]);
+	}
+	
 	is_recieve_unregist_packet = 0;
-	if(network_write(message_sockfd,regist_send_info,32) == FALSE)
+	if(network_write(message_sockfd,regist_send_info,t_info_leek) == FALSE)
 	{
 		message_isConnected = 0;
 		return FALSE;
