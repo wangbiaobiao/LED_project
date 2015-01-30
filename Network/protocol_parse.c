@@ -608,7 +608,8 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 	padding_string(message_body, GATEWAY_ELECTRIC_START ,GATEWAY_ELECTRIC_END+1 , 0x00);
 	printf("GATEWAY_ELECTRIC_START:%s\n",GATEWAY_ELECTRIC_START+message_body);
 	//version stat
-	padding_string(message_body, GATEWAY_VERSION_START ,GATEWAY_VERSION_END+1 , 0x00);
+	//padding_string(message_body, GATEWAY_VERSION_START ,GATEWAY_VERSION_END+1 , 0x00);
+	myUint8cpy(message_body,GETWAY_VERSION,GATEWAY_VERSION_START,strlen(GETWAY_VERSION));
 	printf("GATEWAY_VERSION_START:%s\n",GATEWAY_VERSION_START+message_body);
 	
 	t_len = sprintf(message_body+GATEWAY_STRATEGY_VERSION_START,"%s","ledProv1");

@@ -10,6 +10,7 @@ int strategy_list_size = 0;
 char network_number[16];
 DList* timetable = NULL;
 extern char gate_way_number[128];
+extern int len_network_number;
 
 void xml_open()
 {   
@@ -403,7 +404,7 @@ boolean config_init()
 	if( t_len < z+15)
 		return FALSE;
 	strcpy(network_number, cmdline_info+z+9);//加上"eth0:off:"  的长度
-	network_number[8] = '\0';
+	network_number[len_network_number] = '\0';
 	printf("network_number:%s\n",network_number);
 	
 	//excete xml
