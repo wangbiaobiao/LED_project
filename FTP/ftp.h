@@ -78,8 +78,10 @@ typedef enum ftp_response_status
 #define STRATEGY_FILE_NAME "4.2.2"
 #define GETWAY_FILE_NAME "ledPro" 
 
-#define FTP_SERVER_IP "114.215.196.51"
-#define FTP_SERVER_PORT 21
+//#define FTP_SERVER_IP "114.215.196.51"
+#define FTP_SERVER_IP "192.168.80.70"
+//#define FTP_SERVER_PORT 21
+#define FTP_SERVER_PORT 15048
 
 #define FTP_CMD_FAIL -1
 #define FTP_RCV_TIMEOUT 30

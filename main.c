@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-int len_network_number = 6;
+int len_network_number = 8;
 char gate_way_number[128] = {0};
 extern char config_ini_name[128];
 //void* check_status(void *arg)

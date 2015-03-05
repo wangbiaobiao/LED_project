@@ -3,12 +3,21 @@
 #include <string.h>
 #include <malloc.h>
 #include <fcntl.h>
-#include "network.h"
-#include "ftp.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/if.h>
+#include <pthread.h>
+#include "network.h"
+#include "ftp.h"
 
-
+int ftp_port_mode = 0x00;;
+#define FTP_PORT_MODE_LIMIT 250
 extern volatile unsigned char ftp_isConnected ;
 extern int ftp_sockfd;
 
@@ -16,7 +25,7 @@ struct sockaddr_in ftp_server_addr;
 
 char file_name[128] = "4.2.2";//must get for xml 
 
-char ftp_path[256] = "/app/";
+char ftp_path[256] = "/home/zhengsh/test/led_ftp";
 
 int ftp_sockfd = -1;
 
@@ -26,7 +35,8 @@ boolean ftp_init()
 	umask(0);
 	memset(welcome_buff, '\0', 1024);
 	boolean ret_value = FALSE;
-		
+	if(ftp_sockfd > 0)
+		close(ftp_sockfd);
 	if((ftp_sockfd =  network_init(&ftp_server_addr, FTP_SERVER_IP, FTP_SERVER_PORT)) != -1)
 		printf("network_init create socket successful.\n");
 	else return FALSE;
@@ -52,6 +62,37 @@ boolean ftp_init()
 	else
 		printf("networt_connect fail\n");
 	return FALSE;
+}
+
+int accept_timeout(int fd, struct sockaddr *addr, int *addrlen, int time)
+{
+  int ret;
+  if(time > 0) {
+    fd_set rSet;
+    FD_ZERO(&rSet);
+    FD_SET(fd, &rSet);
+
+    struct timeval timeout;
+    timeout.tv_sec = time;
+    timeout.tv_usec = 0;
+
+    int selectRet;
+    do {
+      selectRet = select(fd + 1, &rSet, NULL, NULL, &timeout);
+    }while(selectRet < 0 && selectRet == EINTR);
+    if(selectRet < 0 ) {
+      return -1;
+    } else if(selectRet == 0) {
+      errno = ETIMEDOUT;
+      return -1;
+    }	
+  }
+  if(addr) {
+    ret = accept(fd, (struct sockaddr *)addr, addrlen);
+  } else {
+    ret = accept(fd, NULL, NULL);
+  }
+  return ret;
 }
 	
 int ftp_send_cmd(ftp_cmd_type type, void *arg)
@@ -163,6 +204,96 @@ int ftp_send_cmd(ftp_cmd_type type, void *arg)
 		}
 		case PORT:	
 		{	
+			int p1 = 0x76;//设置/* 客户端开始监听端口p1*256+p2 * =  3501
+			int ftp_server_sock = -1;
+			int x = 0;
+			struct sockaddr_in ftp_data_addr;
+			unsigned short client_port = 0;
+			struct   ifreq ifr_ip;
+			struct   sockaddr_in *sin; 
+			struct  sockaddr_in client_name;
+   			char ipaddr[128];  
+   			int length = sizeof(struct  sockaddr_in);
+			memset(&ifr_ip, 0, sizeof(ifr_ip));  
+			memset(ipaddr, 0, sizeof(ipaddr));     
+  			strncpy(ifr_ip.ifr_name, "eth0", sizeof(ifr_ip.ifr_name) - 1);    
+			
+			
+			if((ftp_server_sock = socket(AF_INET, SOCK_STREAM, 0)) != -1)
+				printf("ftp PORT create socket successful.\n");
+			else
+			{
+				printf("ftp PORT create socket fail.\n");
+				return FTP_CMD_FAIL;
+			}
+			
+			if(ioctl(ftp_server_sock, SIOCGIFADDR, &ifr_ip) < 0 )     
+		    {     
+				printf("ftp PORT ioctl socket fail.\n");
+				return FTP_CMD_FAIL;    
+		    } 
+		    sin = (struct sockaddr_in *)&ifr_ip.ifr_addr;  
+    		strcpy(ipaddr,inet_ntoa(sin->sin_addr));  
+		    printf("local ip:%s \n", ipaddr);     
+		    for(x=0; x<strlen(ipaddr); x++)
+		    {
+		    	if(ipaddr[x] == '.')
+		    		ipaddr[x] = ',';
+		    }
+		    
+		    
+		    
+			ftp_data_addr.sin_family = AF_INET;
+			ftp_data_addr.sin_addr.s_addr = htons(INADDR_ANY);
+			client_port = p1*256+ftp_port_mode;
+  
+			ftp_data_addr.sin_port = htons(client_port);
+			
+		/*	int option=1;
+			setsockopt(ftp_data_sock,SOL_SOCKET,SO_REUSEADDR,(char *)&option,sizeof(option));
+			struct linger li;
+			li.l_onoff=1;
+			li.l_linger=1;
+			setsockopt(ftp_data_sock,SOL_SOCKET,SO_LINGER,(char *)&li,sizeof(li));*/
+			
+			if(-1 == bind(ftp_server_sock, (struct sockaddr *)&ftp_data_addr, sizeof(struct sockaddr_in)))
+			{
+				printf("ftp PORT bind fail.\n");
+				close(ftp_server_sock);
+				return FTP_CMD_FAIL; 
+			}
+			
+			/* 客户端开始监听端口p1*256+p2 */
+			if(-1 == listen(ftp_server_sock, 10))
+			{
+				printf("ftp PORT listen fail.\n");
+				close(ftp_server_sock);
+				return FTP_CMD_FAIL; 
+			}
+			
+			sprintf(send_buff,"PORT %s,%d,%d\r\n", ipaddr, p1, ftp_port_mode);
+			
+			
+			ftp_port_mode++;
+			if(ftp_port_mode >  FTP_PORT_MODE_LIMIT)
+				ftp_port_mode = 0;
+				
+			if(ftp_send_cmd_buff(send_buff, rev_buff))
+			{
+					if(Command_okay != ascll2int(rev_buff, 0, 2))
+					{
+						printf("ftp PORT server not answer 200.\n");
+						close(ftp_server_sock);
+						return  FTP_CMD_FAIL;
+					}
+					else
+					{
+						printf("ftp PORT server answer OK.\n");
+						return  ftp_server_sock;
+					}
+			}
+			close(ftp_server_sock);
+			return  FTP_CMD_FAIL;
 
 		}
 		case RETR:	
@@ -227,7 +358,10 @@ boolean ftp_send_cmd_buff(const char* send_buff, char* ret_str)
 boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 {
 	int ftp_data_sock = -1;
+	int ftp_server_sock = -1;
 	printf("get_file_from_server\n");
+	struct  sockaddr_in client_name;
+	int length = sizeof(struct  sockaddr_in);
 	if(TRUE == ftp_init())
 	{
 		printf("connect ftp successful \n");	
@@ -252,18 +386,25 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 			printf("login fail! \n");
 			return FALSE;
 		}
-		if((ftp_data_sock = ftp_send_cmd(PASV,NULL)) == FTP_CMD_FAIL)
+		
+//		if((ftp_data_sock = ftp_send_cmd(PASV,NULL)) == FTP_CMD_FAIL)//被动模式
+		//主动模式
+		if((ftp_server_sock = ftp_send_cmd(PORT,NULL)) == FTP_CMD_FAIL)
 		{
 
-			printf("PASV fail! \n");
+			printf("PORT fail! %d\n", ftp_server_sock);
 			return FALSE;
 		}
+		printf("====PORT success! ftp_server_socket:%d\n", ftp_server_sock);
+		
+		
 		int dir_count = 1, i = 0;//strlen((const char*)dir_name)
 		for(i=0; i<dir_count; i++)
 		{			
 			printf("dir_count:%s\n",dir_name[i]);
 			if(FTP_CMD_FAIL == ftp_send_cmd(CWD,dir_name[i]))
 			{
+				close(ftp_server_sock);
 				return FALSE;
 			}
 		}
@@ -272,7 +413,11 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 		if(FTP_CMD_FAIL != file_size)
 			printf("%s size:%d\n",file_name, file_size);
 		else
+		{
+			close(ftp_server_sock);
 			return FALSE;
+		}
+		
 		if(ftp_send_cmd(RETR, file_name)!=FTP_CMD_FAIL)
 		{
 			int has_rev_len = 0, has_write_len = 0;
@@ -282,7 +427,16 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 			memset(open_file,'\0',256);
 			strcat(open_file, ftp_path);
 			strcat(open_file, file_name);
-			int flags = fcntl(ftp_data_sock,F_GETFL,0); 
+			
+			if((ftp_data_sock = accept_timeout(ftp_server_sock, (struct sockaddr *)&client_name, &length, 10)) < 0)
+			{
+				printf("ftp accept fail:%s\n", strerror(errno));
+				close(ftp_server_sock);
+				return FALSE;
+			}
+			printf("ftp accept success\n");
+			
+//			int flags = fcntl(ftp_data_sock,F_GETFL,0); 
 //			fcntl(ftp_data_sock, F_SETFL, flags | O_NONBLOCK);
 			printf("open save_file_fd\n");
 			int save_file_fd = open(open_file,O_RDWR|O_CREAT|O_TRUNC,0777);
@@ -290,6 +444,8 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 			{
 				printf("open save_file_fd fail\n");
 				free(file_buff);
+				close(ftp_server_sock);
+				close(ftp_data_sock);
 //				fcntl(ftp_data_sock,F_SETFL,flags & ~O_NONBLOCK); 
 				return FALSE;
 			}
@@ -328,8 +484,10 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 					{
 						char recvbuff[128];
 						memset(recvbuff, '\0', 128);
-						printf("socket read fail \n");
+						printf("socket read fail: %s\n", strerror(errno));
 						free(file_buff);
+						close(ftp_server_sock);
+						close(ftp_data_sock);
 //						fcntl(ftp_data_sock,F_SETFL,flags & ~O_NONBLOCK); 
 
 						return FALSE;
@@ -343,6 +501,9 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 							free(file_buff);
 //							fcntl(ftp_data_sock,F_SETFL,flags & ~O_NONBLOCK); 
 							if(close(save_file_fd) == -1) printf("close file fail\n");
+							
+							close(ftp_server_sock);
+							close(ftp_data_sock);
 							return FALSE;
 						}
 						if(has_write_len == has_rev_len)
@@ -363,12 +524,13 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 						if(close(save_file_fd) == -1) printf("close file fail\n");
 						
 						close(ftp_data_sock);
+						close(ftp_server_sock);
 						printf("================\n");
 //						fcntl(ftp_sockfd, F_SETFL, flags | O_NONBLOCK);
 //						usleep(1000);
 //						int read_len = read(ftp_sockfd, recvbuff, 128);
 //						fcntl(ftp_sockfd,F_SETFL,flags & ~O_NONBLOCK);
-						int read_len = network_read(ftp_sockfd, recvbuff, 19);						
+						int read_len = network_read(ftp_sockfd, recvbuff, 24);						
 						printf("========%s========\n",recvbuff);
 						
 						if(read_len != -1)
@@ -383,20 +545,26 @@ boolean get_file_from_server(char (*dir_name)[128], char *file_name)
 		}
 		else
 		{	
+			close(ftp_server_sock);
+			close(ftp_data_sock);
 			return FALSE;
 		}
 		if(ftp_send_cmd(QUIT,NULL) == FTP_CMD_FAIL)
 		{
 			printf("QUIT fail! \n");
-			return FALSE;
+	//		return FALSE;
 		}
 		close(ftp_sockfd);
+		close(ftp_server_sock);
+		close(ftp_data_sock);
 		ftp_isConnected = 0;
 		return TRUE;
 	}
 	else
 	{
 		printf("connect ftp server fail \n");
+		close(ftp_server_sock);
+		close(ftp_data_sock);
 		return FALSE;
 	}
 }
