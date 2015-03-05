@@ -371,10 +371,10 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		//发现策略的新版本
 		info_leek += 16;
 		myUint8cpy(t_strategy, info+info_leek, 0, 32);
-		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$$$$$%d$$$$$\n",t_strategy[0]);
+		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$$$$$%s$$$$$\n",t_strategy);
 //		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
 //			printf("find_new_file fail\n");
-		if(strcmp(t_strategy,strategy_file_name))
+		if((strlen(t_strategy) != 0)&&(strcmp(t_strategy,strategy_file_name)))
 		{
 			memset(dir_name_info[0], '\0', 128);
 			strcpy(dir_name_info[0],"strategy");
