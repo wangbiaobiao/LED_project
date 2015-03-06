@@ -25,7 +25,8 @@ struct sockaddr_in ftp_server_addr;
 
 char file_name[128] = "4.2.2";//must get for xml 
 
-char ftp_path[256] = "/home/zhengsh/test/led_ftp";
+//char ftp_path[256] = "/home/zhengsh/test/led_ftp";
+char ftp_path[256] = "/app/";
 
 int ftp_sockfd = -1;
 

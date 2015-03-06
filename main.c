@@ -263,9 +263,9 @@ int main(int argc, char * argv[])
 	
 	if(!config_init())
 		printf("config_init failed\n");	
-	
+
 	printf("\n\n==================GetSize:%d======================\n\n",GetSize(timetable));
-	
+
 	pthread_t send_heartbeat_packet_pid, recieve_server_packet_pid, message_init_pid; 
 	if(pthread_create(&message_init_pid, NULL, message_init, NULL))
 	{
