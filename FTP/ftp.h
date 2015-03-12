@@ -81,7 +81,7 @@ typedef enum ftp_response_status
 //#define FTP_SERVER_IP "114.215.196.51"
 #define FTP_SERVER_IP "192.168.80.70"
 //#define FTP_SERVER_PORT 21
-#define FTP_SERVER_PORT 15048
+#define FTP_SERVER_PORT 11121
 
 #define FTP_CMD_FAIL -1
 #define FTP_RCV_TIMEOUT 30

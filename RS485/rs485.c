@@ -282,6 +282,7 @@ boolean timing( )
 		printf("addr is %d\n",t_node->next->data.node_addr);
 	}
 	t_node = t_head;
+	/*解析策略，设置标记flag*/
 	for(i = 0; t_node->next != NULL; t_node=t_node->next,i++)
 	{
 		node_start_day = t_node->next->data.startMoment / THE_NUMBER_OF_SECONDS_A_DAY;
@@ -296,6 +297,10 @@ boolean timing( )
 		
 		printf("node_start_day is %d,node_end_day is %d,node_start_time is %d,node_end_time is %d\n",node_start_day,node_end_day,node_start_time,node_end_time);
 		printf("current_day is %d,current_time%d\n",current_day,current_time);
+		if(node_start_time > node_end_time)
+		{
+			node_end_time = node_end_time + 24*3600;
+		}
 		if((node_start_day <= current_day) && (node_end_day >= current_day) && 
 		   (node_start_time <= current_time) && (node_end_time >= current_time))
 		{
@@ -317,7 +322,7 @@ boolean timing( )
 			
 	}
 	int n_size = GetSize(timetable);
-		
+	/*处理标记flag*/	
 	for(i = 0; i < n_size; i++)
 	{
 		for(j = 0; j < n_size; j++)

@@ -366,7 +366,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 					//sleep(1);
 			}
 			else
-				printf("update getway version %s %s fail\n", t_version,t_app_name);
+				printf("!!!update getway version %s %s fail\n", t_version,t_app_name);
 		}
 		//发现策略的新版本
 		info_leek += 16;
@@ -423,7 +423,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 				}	
 			}
 			else
-				printf("update t_strategy version %s fail\n", t_strategy);
+				printf("!!!update t_strategy version %s fail\n", t_strategy);
 		}
 		//发现配置文件的新版本
 		info_leek += 32;
@@ -462,7 +462,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 				}
 				else
 				{
-					printf("update config version %s fail\n", t_config);
+					printf("!!!update config version %s fail\n", t_config);
 				}
 			}
 		}
@@ -857,6 +857,8 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 		}
 		free(NodeAddress);
 }
+
+
 void* send_heartbeat_packet(void * arg)
 {
 	char time_str[128]="20140604101010";	
@@ -866,12 +868,6 @@ void* send_heartbeat_packet(void * arg)
 	
 	while(1)
 	{
-	//	sleep(100);
-	//	if(get_localtime(time_str) == 0)
-	//	{
-	//		sleep(1);
-	//		continue;
-	//	}
 		if(message_isConnected == 0)	
 		{
 			continue;
@@ -881,133 +877,12 @@ void* send_heartbeat_packet(void * arg)
 		{
 			continue;
 		}
-			//message_head[6] = 0x00;//0xff & (current_message_id > 8);
-			//message_head[7] = 0x14;//0xff & (current_message_id > 8);
-			
-			//message_head[8] = 0xff & (current_message_id > 8);
-			//message_head[9] = 0xff & current_message_id;	
-			//message_head[11] = 0x07;
-			//unsigned char test[1024] = {0x7e,0x68,0x00,0x01,0x00,0x00,0x00,0x09,0x00,0x14,0x00,0x01,'2','0','0','8','8',0x00,0x00,0xcc,0xfe};
-			
-			//printf("getBCC1 %02x,%02x:%x\n",test[35],test[34],getUint8BCC(test,12,20));
-			//strcat(registz_info,message_head);
-			//memset(temp, '\0', 1024);
-			//test[35] = getBCC1(regiset_info,14,35);
-			//sprintf(temp,"20088%c",0xcc);	
-			//strcat(registz_info,temp);
-//			
-//			memset(temp1, '\0', 1024);
-//			sprintf(temp1,"%c",getBCC(temp));				
-			//strcat(registz_info,temp1);
-//			is_recieve_regist_packet = 0;
-//			if(network_write(message_sockfd,regist_send_info,36) == FALSE)
-//			{
-//				message_isConnected = 0;
-//				continue;
-//			}
-//			for(j=0; j<RECIEVE_TIMEOUT; j++)
-//			{
-//				
-//if(is_recieve_regist_packet == -1||is_recieve_regist_packet == 1)
-//					break;
-//				usleep(100);
-//			}
-//			if(is_recieve_regist_packet == -1)
-//				continue;
-//				
-//			message_isLogin = 1;
-			//printf("\n send registz_info:%s\n",registz_info);	
-//			memset(regist_rev_info, '\0', 256);
-//			if(network_read(message_sockfd, regist_rev_info, MESSAGE_HEAD_LEN))	
-//			{
-//				int regist_rev_info_len = get_message_len(regist_rev_info);
-//				memset(message_temp, '\0', 1024);
-//				if(network_read(message_sockfd, message_temp, regist_rev_info_len))	
-//				{
-//					recv_len = regist_rev_info_len+MESSAGE_HEAD_LEN;
-//					myUint8cpy(regist_rev_info, message_temp, MESSAGE_HEAD_LEN, regist_rev_info_len);
-//					printf("recv_len:%d\n==================",recv_len);
-//					for(j=0;j<recv_len;j++)
-//					{
-//						printf("%02x ",regist_rev_info[j]);
-//					}
-//					printf("==================\n");	
-//					if(!parse_regist_packet(regist_rev_info))
-//						continue;
-//				}
-//				else
-//				{
-//					message_isConnected = 0;
-//					continue;
-//				}
-//				//while(1);
-//			}
-//			else
-//			{
-//				message_isConnected = 0;
-//				continue;
-//			}
-//		else
-//		{
-//			printf("send suceess len:%d\n",send_len);
-//		
-//			printf("\n==================");
-//			for(j=0;j<send_len;j++)
-//			{
-//				printf("%02x ",test[j]);
-//			}
-//			printf("==================\n");	
-//		}
-		
-		
-//sleep(10);
 		memset(message_info, '\0', 4096);
 		if(!construct_packet_head(message_head, GETWAY_TO_SERVER_HEARTBEAT_TYPE))
 			continue;
 		if(!construct_heartbeat_packet_body(message_body))
 			continue;
-//		current_message_id = ++message_id;
-//		//message_head[6] = 0x02;//0xff & (current_message_id > 8);
-//		//message_head[7] = 0x68;//0xff & (current_message_id > 8);
-//		message_head[10] = 0xff & (current_message_id >> 24);
-//		message_head[11] = 0xff & (current_message_id >> 16);
-//		message_head[12] = 0xff & (current_message_id >> 8);
-//		message_head[13] = 0xff & current_message_id;
 		
-		
-
-		//strcat(message_body,"1100201");
-//		myCopy(message_body, "1,1,0,0,201", LIGHTBOX1_START, 11);
-//		padding_string(message_body, LIGHTBOX1_START+11 ,LIGHTBOX1_END+1 , 0x00);
-//		printf("%d,LIGHTBOX1:%s\n",LIGHTBOX1_END-LIGHTBOX1_START+1,LIGHTBOX1_START+message_body);
-//		
-//		myCopy(message_body, "2,1,0,0,201", LIGHTBOX2_START, 11);
-//		padding_string(message_body, LIGHTBOX2_START+11 ,LIGHTBOX2_END+1 , 0x00);
-//		printf("LIGHTBOX2:%s\n",LIGHTBOX2_START+message_body);
-//		
-//		myCopy(message_body, "3,1,0,0,201", LIGHTBOX3_START, 11);
-//		padding_string(message_body, LIGHTBOX3_START+11 ,LIGHTBOX3_END+1 , 0x00);
-//		printf("LIGHTBOX3:%s\n",LIGHTBOX3_START+message_body);
-//		
-//		myCopy(message_body, "4,1,0,0,201", LIGHTBOX4_START, 11);
-//		padding_string(message_body, LIGHTBOX4_START+11 ,LIGHTBOX4_END+1 , 0x00);
-//		printf("LIGHTBOX4:%s\n",LIGHTBOX4_START+message_body);
-//		
-//		myCopy(message_body, "5,1,0,0,201", LIGHTBOX5_START, 11);
-//		padding_string(message_body, LIGHTBOX5_START+11 ,LIGHTBOX5_END+1 , 0x00);
-//		printf("%d,LIGHTBOX5:%s\n",LIGHTBOX5_END-LIGHTBOX5_START+1,LIGHTBOX5_START+message_body);
-//		
-//		myCopy(message_body, "6,1,0,0,201", LIGHTBOX6_START, 11);
-//		padding_string(message_body, LIGHTBOX6_START+11 ,LIGHTBOX6_END+1 , 0x00);
-//		printf("LIGHTBOX6:%s\n",LIGHTBOX6_START+message_body);
-//		
-//		myCopy(message_body, "7,1,0,0,201", LIGHTBOX7_START, 11);
-//		padding_string(message_body, LIGHTBOX7_START+11 ,LIGHTBOX7_END+1 , 0x00);
-//		printf("LIGHTBOX7:%s\n",LIGHTBOX7_START+message_body);
-//		
-//		myCopy(message_body, "8,1,0,0,201", LIGHTBOX8_START, 11);
-//		padding_string(message_body, LIGHTBOX8_START+11 ,LIGHTBOX8_END+1 , 0x00);
-//		printf("LIGHTBOX8:%s\n",LIGHTBOX8_START+message_body);
 		myUint8cpy(message_info, message_head, 0, MESSAGE_HEAD_LEN);
 		myUint8cpy(message_info, message_body, MESSAGE_HEAD_LEN, message_len);
 		message_info[message_len+MESSAGE_HEAD_LEN] = 0xcc;
@@ -1033,18 +908,8 @@ void* send_heartbeat_packet(void * arg)
 		{
 			printf("\n==================");
 			j = 14;
-		//	for(j=0;j<message_len+MESSAGE_HEAD_LEN+2;j++)
-		//debug
 			{
 				int n=0,m=0;
-				/*for(n=0; n<xml_length_type_100_size; n++)
-				{
-					for(m=0; m<xml_length_type_100[n]; m++)
-					{
-						printf("%02x ",message_info[j++]);
-					}
-					printf("\n");
-				}*/
 			}
 			printf("%02x,%02x\n",message_info[j],message_info[j+1]);
 			printf("==================\n");
@@ -1064,52 +929,13 @@ void* send_heartbeat_packet(void * arg)
 			continue;
 		}
 		printf("send_heart_packet success\n");
-		sleep(60*2);
-//		memset(message_rev_info, '\0', 1024);
-//		if(network_read(message_sockfd, message_rev_info, MESSAGE_HEAD_LEN))	
-//		{
-//			int t_recieve_len = get_message_len(message_rev_info);
-//			memset(message_temp, '\0', 1024);
-//			if(network_read(message_sockfd, message_temp, message_rev_info_len))	
-//			{
-//				recv_len = message_rev_info_len+MESSAGE_HEAD_LEN;
-//				myUint8cpy(message_rev_info, message_temp, MESSAGE_HEAD_LEN, message_rev_info_len);
-//				printf("recv_len:%d\n==================",recv_len);
-//				for(j=0;j<recv_len;j++)
-//				{
-//					printf("%02x ",message_rev_info[j]);
-//				}
-//				printf("==================\n");	
-//				if(!parse_heartbeat_packet(message_rev_info))
-//					continue;
-//			}
-//			else
-//			{
-//				message_isConnected = 0;
-//				continue;
-//			}
-//			//while(1);
-//		}
-//		else
-//		{
-//			message_isConnected = 0;
-//			continue;
-//		}
-//		//
-//		while((recv_len = read(sockfd,recvbuff,1024)) > 0)	
-//		{
-//			printf("len:%d,rev:%s\n",strlen(recvbuff),recvbuff);
-//				printf("recv_len:%d\n==================",recv_len);
-//				for(j=0;j<recv_len;j++)
-//				{
-//					printf("%02x ",recvbuff[j]);
-//				}
-//				printf("==================\n");	
-//				while(1);	
-//		}
-		//if(!parse_message_body())		
+		sleep(30);	
 	}
 }
+
+
+
+
 
 boolean recieve_server_packet()
 {

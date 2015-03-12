@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-int len_network_number = 8;
+int len_network_number = 4;
 char gate_way_number[128] = {0};
 extern char config_ini_name[128];
 //void* check_status(void *arg)
@@ -182,6 +182,8 @@ boolean my_parse_ini()
 	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
 	memset(network_number, '\0', 128);
 	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
+	memcpy(gate_way_number,gate_way_number+4,len_network_number);
+	memcpy(network_number,network_number+4,len_network_number);
 	network_number[len_network_number] = '\0';
 	gate_way_number[len_network_number] = '\0';
 	printf("network_number:%s\n",network_number);

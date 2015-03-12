@@ -376,37 +376,6 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 boolean config_init()
 {
 	boolean t_return = TRUE;
-	//get info from cmdline of boot_args
-	int cmdline_fd = open("/proc/cmdline",O_RDONLY);
-	char t_cmdline_buff[256], cmdline_info[512];
-	memset(network_number, '\0', 16);
-	if(cmdline_fd == -1)
-		return FALSE;
-	memset(cmdline_info, '\0', 512);
-	memset(t_cmdline_buff, '\0', 256);
-	if(read(cmdline_fd, t_cmdline_buff,256)>0)
-	{
-	
-	strcat(cmdline_info,t_cmdline_buff);
-		memset(t_cmdline_buff, '\0', 256);
-	}
-	printf("network_number:%s,%d\n",cmdline_info,strlen(cmdline_info));
-	int t_len = strlen(cmdline_info), z = 0;
-	for(z=0; z<t_len-15; z++)	
-	{
-		if(cmdline_info[z] == 'e' && cmdline_info[z+1] == 't'&&
-		cmdline_info[z+2] == 'h' && cmdline_info[z+3] == '0')
-		 break;
-	}
-	if(t_len-15 == z)
-		return FALSE;
-	printf("=========%c============",cmdline_info[z]);
-	if( t_len < z+15)
-		return FALSE;
-	strcpy(network_number, cmdline_info+z+9);//加上"eth0:off:"  的长度
-	network_number[len_network_number] = '\0';
-	printf("network_number:%s\n",network_number);
-	
 	//excete xml
 	memset(strategy_file_name,'\0',sizeof(strategy_file_name));
 	if(!find_new_file(STRATEGY_FILE_DIR,strategy_file_name))
