@@ -228,7 +228,8 @@ boolean my_parse_ini()
 }
 pthread_t perform_automatic_strategy_pid = -1;
 
-int main(int argc, char * argv[])
+
+int l_main()
 {
 	//if(argc < 2)
 //	{
@@ -403,4 +404,26 @@ int main(int argc, char * argv[])
 //		last_arg = arg;
 //	}
 	return 0;
-}	
+}
+
+int main(int argc, char * argv[])
+{
+	pid_t pid;
+	pid = fork();
+	int status;
+	if(pid<0)	
+	{		
+		fprintf(stderr,"fork error");
+	}	
+	if(pid == 0)
+	{
+		l_main();
+		
+	}else
+	{		
+		pid=wait(&status);
+		sleep(2*60);
+		system("reboot -f");
+	}
+	
+}
