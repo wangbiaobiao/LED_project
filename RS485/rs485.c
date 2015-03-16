@@ -260,6 +260,11 @@ boolean timing( )
 		int addr;
 		int flag;
 	};
+	printf("GetSize:%d\n",GetSize(timetable));
+	if(GetSize(timetable) == 0)
+	{
+		return FALSE;
+	}
 	if(t_current_time == -1)
 	{
 		printf("can't get current time\n");
@@ -275,7 +280,7 @@ boolean timing( )
 	
 	struct c_addr * board_caddr= (struct c_addr *)malloc(GetSize(timetable)*sizeof(struct c_addr));
 
-	printf("GetSize:%d\n",GetSize(timetable));
+	
 	for(; t_node->next != NULL; t_node=t_node->next)
 	{
 		time_printf(t_node->next->data.startMoment, t_node->next->data.endMoment);

@@ -34,18 +34,6 @@ int volatile is_recieve_exception_packet = 0;
 
 extern boolean my_parse_ini();
 
-
-/*boolean xml_config(char* _protocl_file_name)
-{
-	if(!find_new_file(PROTOCOL_FILE_DIR,_protocl_file_name))
-		return FALSE;
-	printf("protocol_file_name:%s\n",_protocl_file_name);
-	if(-1 == (xml_length_type_100_size = xml_parse(_protocl_file_name, 100, xml_length_type_100)))
-		return FALSE;
-	if(-1 == (xml_length_type_301_size = xml_parse(_protocl_file_name, 301, xml_length_type_301)))
-		return FALSE;
-	return TRUE;
-}*/
 boolean xml_config(char* _protocl_file_name)
 {
 	xml_length_type_100_size = point_config.beiting.len+point_config.dapai.len+point_config.yuanhu.len - 3 + 8;
@@ -94,8 +82,6 @@ void* message_init(void* arg)
 					message_isConnected = 0;
 					printf("============send_regist_packet fail================\n");
 				}
-				//message_isConnected = 1;
-				//sleep(100);
 			}
 			else
 				printf("networt_connect fail\n");
@@ -159,7 +145,7 @@ int parse_control_packet(unsigned char* info)
 		}
 		else if(control_type == 1)
 		{
-		//perform_automatic_strategy_pid != -1说明此时有线程，才需要去关闭它
+			//perform_automatic_strategy_pid != -1说明此时有线程，才需要去关闭它
 			if(perform_automatic_strategy_pid != -1)
 			{
 				pthread_cancel(perform_automatic_strategy_pid);
@@ -184,7 +170,6 @@ int parse_control_packet(unsigned char* info)
 		{
 			 continue;
 		}
-		printf("#######################################%d\n",atoi(t_split_info[0]));
 		if(!send_cmd(atoi(t_split_info[0]), t_cmd, (void*)(&return_packet)))
 		{
 			printf("shit you !!!!!!!! no work!!!!!!!!!\n");
@@ -230,15 +215,10 @@ int parse_message_head(unsigned char* info)
 //			mySystem("mv /app/protocol/led_tmp /app/protocol/led_v1.xml");
 			printf("update  led_v%d.xml fail\n",info[3]);
 		}
-//		}
 	}
 	return get_message_len(info);
 	//=========================================================
-	//=========================================================
-	//=========================================================
 	//message id must be parsed
-	//=========================================================
-	//=========================================================
 	//=========================================================
 }
 
@@ -332,15 +312,10 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		myUint8cpy(t_time, info+info_leek, 0, 20);
 		if(!calibrateTime(t_time))
 			printf("calibrateTime fail\n");
-//#define STRATEGY_FILE_DIR "/app/strategy/"
-
-//#define PROTOCOL_FILE_DIR "/app/protocol/"
 		//中继器新版本
 		info_leek += 20;
 		myUint8cpy(t_version, info+info_leek, 0, 16);
-	//	strcat(app_name, t_version);
-	//	if(!find_new_file(PROTOCOL_FILE_DIR,current_version))
-	//		printf("find_new_file fail\n");
+		
 		char t_app_name[128];
 		memset(t_app_name,'\0',128);
 		strcat(t_app_name,"ledPro");
@@ -352,18 +327,12 @@ boolean parse_heartbeat_packet(unsigned char * info)
 			if(get_file_from_server(dir_name_info, t_app_name))
 			{
 				printf("update getway version %s success\n", t_version);
-//				memset(t_cmd, '\0', 128);
-//				sprintf(t_cmd,"rm -r /app/getway/ledPro");
-//				mySystem(t_cmd);
-//				sleep(2);
-
 				memset(t_cmd, '\0', 128);
 				sprintf(t_cmd,"mv -f /app/%s /app/update_program",t_app_name);
 				mySystem(t_cmd);
 				
 				sleep(5);
 				reboot();
-					//sleep(1);
 			}
 			else
 				printf("!!!update getway version %s %s fail\n", t_version,t_app_name);
@@ -372,8 +341,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		info_leek += 16;
 		myUint8cpy(t_strategy, info+info_leek, 0, 32);
 		printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$STRATEGY$$$$$$$$$$$$%s$$$$$\n",t_strategy);
-//		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
-//			printf("find_new_file fail\n");
+			
 		if((strlen(t_strategy) != 0)&&(strcmp(t_strategy,strategy_file_name)))
 		{
 			memset(dir_name_info[0], '\0', 128);
@@ -396,8 +364,7 @@ boolean parse_heartbeat_packet(unsigned char * info)
 				sleep(2);
 				memset(strategy_file_name, '\0', 128);
 				strcpy(strategy_file_name,t_strategy);
-				//timetable_index = 0;
-				//current_strategy_list = 0;
+				
 				printf("-------------------------------------------------------\n");
 				if(!strategy_parse(t_strategy))
 				{
@@ -428,8 +395,6 @@ boolean parse_heartbeat_packet(unsigned char * info)
 		//发现配置文件的新版本
 		info_leek += 32;
 		myUint8cpy(t_config, info+info_leek, 0, 16);
-//		if(!find_new_file(STRATEGY_FILE_DIR,current_strategy))
-//			printf("find_new_file fail\n");
 
 		memset(dir_name_info[0], '\0', 128);
 		strcpy(dir_name_info[0],"ledstationconfig");
@@ -518,9 +483,7 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 		message_head[2] = 2;
 		message_head[8] = 0;
 		message_head[9] = GETWAY_TO_SERVER_HEARTBEAT_TYPE;
-		//what????
-		/*for(i=0; i<xml_length_type_100_size; i++)
-			message_len += xml_length_type_100[i];*/
+		
 		message_len = (xml_length_type_100_size - 8) * 64 + 102;
 		t_message_len = message_len;
 		
@@ -530,11 +493,7 @@ boolean construct_packet_head(unsigned char* message_head, int type)
 		message_head[2] = 2;
 		message_head[8] = (GETWAY_TO_SERVER_CONTROL>>8)& 0xff;
 		message_head[9] = GETWAY_TO_SERVER_CONTROL& 0xff;;
-/***************************************************************
-		for(i=8; i<xml_length_type_100_size; i++)
-			t_message_len += xml_length_type_100[i];
-		t_message_len += 8;
-****************************************************************/
+		
 		t_message_len = 8+64*8;
 	}
 	printf("message_len:%d\n",message_len);
@@ -619,11 +578,7 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 	//type stat
 	padding_string(message_body, GATEWAY_ERROR_TYPE_START ,GATEWAY_ERROR_TYPE_END+1 , 0x00);
 	printf("GATEWAY_ERROR_TYPE_START:%s\n",GATEWAY_ERROR_TYPE_START+message_body);
-
-	//	sleep(10);
-//	int has_message_len = 0;
-//	for(i=0; i<8; i++)
-//		has_message_len +=  xml_length_type_100[i];
+	
 	int t_start = LIGHTBOX1_START, t_end = LIGHTBOX1_START+64;
 	int j = 0;
 	void build_body(int len,char ch)
@@ -631,9 +586,6 @@ boolean construct_heartbeat_packet_body(unsigned char* message_body)
 		int i = 0;
 		for(i=1; i<len; i++)
 		{
-	//			//strcat(message_body,"1100201");
-			//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
-			//NodeAddress = i-7+64;//1016 backup:NodeAddress = i-7;
 			printf("xml_len:%d,NodeAddress:%d\n",xml_length_type_100_size,*(NodeAddress+j));
 			printf("============================");
 			if(!send_cmd((*(NodeAddress+j)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
@@ -812,8 +764,6 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 			int i = 0; 
 			for(i=1; i<len; i++)
 			{
-	//				//strcat(message_body,"1100201");
-				//灯箱号,控制类型(手动[1]或自动(策略[0])),开关状态(开[0]或关[1]),灯箱状态(正常[0]或异常[1]),电流
 				if(!send_cmd((*(NodeAddress+j)), CMD_GET_NODE_LED_STATUS,(void*)(&relay_packet)))
 				{
 					node_abnormal |= 1;
@@ -850,7 +800,7 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 		build_body(point_config.yuanhu.len,'y');
 		for(; j<=8; j++)
 		{
-			printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@t_start is %d@@@@@@@t_start is %d\n",t_start,t_end);
+			printf("t_start is %d@@@@@@@t_start is %d\n",t_start,t_end);
 			padding_string(led_status_info, t_start,t_end , 0x00);
 			t_start = t_end;
 			t_end = t_start + 64;
@@ -891,12 +841,12 @@ void* send_heartbeat_packet(void * arg)
 		printf("************head****\n");
 		for(i = 0;i < message_len+MESSAGE_HEAD_LEN+2; i++)
 		{
-			printf("%x ",message_info[i]);
+			printf("%02x ",message_info[i]);
 		}
 		printf("\n************body***\n");
 		for(i = 0;i < message_len; i++)
 		{
-			printf("%x ",message_body[i]);
+			printf("%02x ",message_body[i]);
 		}
 		printf("\n");
 		if(!network_write(message_sockfd, message_info, message_len+MESSAGE_HEAD_LEN+2))
@@ -1004,10 +954,6 @@ boolean recieve_server_packet()
 						is_recieve_regist_packet = 1;
 					else
 						is_recieve_regist_packet = -1;
-				//	if(!network_recieve_semaphore_v())
-				//	{
-				//		printf("network_recieve_semaphore_v fail\n");
-				//	}
 					return t_return;
 						
 				}
@@ -1019,10 +965,6 @@ boolean recieve_server_packet()
 						is_recieve_unregist_packet = 1;
 					else
 						is_recieve_unregist_packet = -1;
-				//	if(!network_recieve_semaphore_v())
-				//	{
-				//		printf("network_recieve_semaphore_v fail\n");
-				//	}
 					return t_return;
 						
 				}
@@ -1034,10 +976,6 @@ boolean recieve_server_packet()
 						is_recieve_message_packet = 1;
 					else
 						is_recieve_message_packet = -1;
-				//	if(!network_recieve_semaphore_v())
-				//	{
-				//		printf("network_recieve_semaphore_v fail\n");
-				//	}
 					return t_return;
 				}
 				case SERVER_TO_GETWAY_CONTROL:
@@ -1045,10 +983,7 @@ boolean recieve_server_packet()
 					printf("-------------SERVER_TO_GETWAY_CONTROL------------------------------------\n");
 					int nodes = parse_control_packet(t_recieve_info);
 					int t_packet_len = parse_message_head(t_recieve_info);
-				//	if(!network_recieve_semaphore_v())
-				//	{
-				//		printf("network_recieve_semaphore_v fail\n");
-				//	}
+					
 					if(-1 == t_packet_len)
 						return FALSE;
 					unsigned char led_status_info[4096];
@@ -1076,7 +1011,7 @@ boolean recieve_server_packet()
 						led_status_info[info_leek+2] = '1';
 					}
 					info_leek += 8;
-					//led的信息 ************************there is bad**********************************
+					//led的信息
 					int t_info_leek = info_leek+t_packet_len-2;
 					get_led_node_status(led_status_info+info_leek, 0, nodes);
 					led_status_info[t_info_leek] = 0xcc;
@@ -1094,28 +1029,10 @@ boolean recieve_server_packet()
 				}
 				case SERVER_TO_GETWAY_EXCEPTION:
 				{
-				//	if(t_return)
-				//		is_recieve_exception_packet = 1;
-				//	else
-				//		is_recieve_exception_packet = -1;
-				//	if(!network_recieve_semaphore_v())
-				//	{
-				//		printf("network_recieve_semaphore_v fail\n");
-				//	}
-				//	return t_return;
 				}
 			}
 		}
-//		else
-//		{
-//			message_isConnected = 0;
-//		}
-		//while(1);
 	}
-//	else
-//	{
-//		message_isConnected = 0;
-//	}
 	return FALSE;
 }
 
@@ -1130,40 +1047,29 @@ void* return_control_packet(void * arg)
 {
 	_return_control_packet *_packet = (_return_control_packet *)arg;
 	int j = 0, i = 0;
-	printf("\n//////////////////////////////////////////////\n");
 	for(j=0;j<100;j++)
 	{
 		printf("%02x,",_packet->return_info[j]);
 	}
-	printf("//////////////////////////////////////////////\n");
-	printf("//////////////////////////////////////////////\n");
 	for(j=100;j<114;j++)
 	{
 		printf("%02x,",_packet->return_info[j]);
 	}
-	printf("//////////////////////////////////////////////\n");
-	printf("//////////////////////////////////////////////\n");
 	for(j=114;j<122;j++)
 	{
 		printf("%02x,",_packet->return_info[j]);
 	}
-	printf("//////////////////////////////////////////////\n");
-	printf("//////////////////////////////////////////////\n");
 	for(i=1;i<9;i++)
 	{
-		printf("//////////////////////////////////////////////\n");
 		for(j=122+64*(i-1);j<122+64*i;j++)
 		{
 			printf("%02x,",_packet->return_info[j]);
 		}
-		printf("//////////////////////////////////////////////\n");
 	}
-	printf("//////////////return////////////////////////////////\n");
 	for(j = 0;j<122+64*8+2;j++)
 	{
 		printf("%02x,",_packet->return_info[j]);
 	}
-	printf("//////////////////////////////////////////////\n");
 	if(!network_write(message_sockfd, _packet->return_info, _packet->info_len))
 	{
 			message_isConnected = 0;
@@ -1176,17 +1082,6 @@ void* recieve_server_packet_pthread(void * arg)
 	while(1)
 	{
 		sleep(1);
-		//if(message_isConnected == 0)	
-	//	{
-	//		if(message_sockfd > 0)
-	//		{
-	//			close(message_sockfd);
-	//			message_sockfd = -1;
-	//			message_isLogin = 0;
-	//		}
-	//		message_init();
-	//		continue;
-	//	}
 		if(!recieve_server_packet())
 		{
 			printf("recieve_control_packet fail\n");

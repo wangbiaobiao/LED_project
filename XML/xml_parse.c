@@ -71,7 +71,7 @@ int execute_xpath_expression(const char* filename, const xmlChar* xpathExpr, con
     nodeset = xpathObj->nodesetval;
      if(xmlXPathNodeSetIsEmpty(nodeset))
     {
-	printf("No such  nodes.\n");
+		printf("No such  nodes.\n");
         xmlXPathFreeObject(xpathObj);
         xmlXPathFreeContext(xpathCtx); 
         xmlFreeDoc(doc);
@@ -88,6 +88,9 @@ int execute_xpath_expression(const char* filename, const xmlChar* xpathExpr, con
 		if(val != NULL){
 			strcpy(find_str, val);
 			printf("the results1 are:%s\n",val);
+		}else
+		{
+			return (-1);
 		}
     }
     xmlFree(val);
@@ -185,6 +188,7 @@ boolean strategy_parse(const char* filename)
 		printf("is being parseing xml ............... %s\n",xpathExpr);
 		if((result = execute_xpath_expression(path, xpathExpr, "node_address", find_addr, 0)) == -1)
 		{
+				printf("$$$$$$$$find node_address is fault\n");
 				xml_close();
 				return FALSE;
 		}
@@ -195,6 +199,7 @@ boolean strategy_parse(const char* filename)
 			//strategy_list_size = strategy_id-1;
 			strategy_list_size = number;
 			printf("result = -4, size:%d\n",strategy_list_size);
+			printf("$$$$$$$$$is will constrcut timetable......\n");
 			return construct_timetable(current_strategy_list);
 		}
 		else
