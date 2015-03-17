@@ -173,8 +173,8 @@ int  main(int argc, char * argv[])
 		recieve_server_packet_pid = -1;
 	}	
 	printf("blue day\n");	
-	//pthread_join(send_heartbeat_packet_pid,NULL);
-	pthread_join(perform_automatic_strategy_pid,NULL);
+	pthread_join(send_heartbeat_packet_pid,NULL);
+	//pthread_join(perform_automatic_strategy_pid,NULL);
 	return 0;
 }
 

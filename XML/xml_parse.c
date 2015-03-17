@@ -88,9 +88,6 @@ int execute_xpath_expression(const char* filename, const xmlChar* xpathExpr, con
 		if(val != NULL){
 			strcpy(find_str, val);
 			printf("the results1 are:%s\n",val);
-		}else
-		{
-			return (-1);
 		}
     }
     xmlFree(val);
