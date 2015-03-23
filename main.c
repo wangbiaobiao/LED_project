@@ -77,7 +77,7 @@ boolean my_parse_ini()
 	char path[128];	
 	memset(dir_name_info, '\0', 128);
 	strcpy(dir_name_info,"ledstationconfig");
-	printf("gate_way_number$$$$$%s\n",gate_way_number);
+	printf("gate_way_number is %s\n",gate_way_number);
 
 	if(find_new_file(INI_FILE_DIR,config_ini_name))
 	{
@@ -107,7 +107,7 @@ pthread_t perform_automatic_strategy_pid = -1;
 
 int  main(int argc, char * argv[])
 {
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
+	printf("--------the app  version:%s---------\n",GETWAY_VERSION);
 	ini_dir();
 	my_parse_ini();
 	if(!semaphore_init())
@@ -145,7 +145,7 @@ int  main(int argc, char * argv[])
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
 	}	
-	printf("blue day\n");	
+	printf("app is runing\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
 	return 0;
 }
