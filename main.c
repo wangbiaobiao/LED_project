@@ -1,10 +1,10 @@
+#include <regex.h>
 #include <pthread.h>
 #include <stdio.h>
 #include "protocol_parse.h"
 #include "rs485.h"
 #include "ini_parse.h"
 #include "ftp.h"
-
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -14,7 +14,7 @@
 int len_network_number = 4;
 char gate_way_number[128] = {0};
 extern char config_ini_name[128];
-
+//有些板子没有ini文件夹，兼容性的代码：
 int ini_dir()
 {
         if(opendir("/app/ini") == NULL)
@@ -32,66 +32,53 @@ int ini_dir()
 
 boolean my_parse_ini()
 {
-	int index = 0;
+	int status,i;
+        int cflags = REG_EXTENDED;
+        regmatch_t pmatch[2];
+        const size_t nmatch = 2;
+        regex_t reg;
+        const char * pattern = "eth0:off:([0-9]+)";
+        char cmdline_buf[256];
+        char cmd_str[256];
+        FILE *cmdline_fd;
 
-	boolean t_return = TRUE;
-	//get info from cmdline of boot_args
-	int cmdline_fd = open("/proc/cmdline",O_RDONLY);
-	char dir_name_info[128][128];
-	char t_cmdline_buff[256], cmdline_info[512];
-	char path[128];
-	char t_cmd[128];
+        cmdline_fd = fopen("/proc/cmdline", "r");
+        if(cmdline_fd != NULL)
+        {
+                if(fgets(cmdline_buf,sizeof(cmdline_buf),cmdline_fd) == NULL)
+                {
+                        printf("cmdline is empty\n");
+                }
+        }
+        fclose(cmdline_fd);
 
-	memset(network_number, '\0', 16);
-	if(cmdline_fd == -1)
-		return FALSE;
-	memset(cmdline_info, '\0', 512);
-	memset(t_cmdline_buff, '\0', 256);
-	if(read(cmdline_fd, t_cmdline_buff,256)>0)
-	{
-	
-	strcat(cmdline_info,t_cmdline_buff);
-		memset(t_cmdline_buff, '\0', 256);
-	}
-	printf("network_number:%s,%d\n",cmdline_info,strlen(cmdline_info));
-	int t_len = strlen(cmdline_info), z = 0;
-	for(z=0; z<t_len-15; z++)	
-	{
-		if(cmdline_info[z] == 'e' && cmdline_info[z+1] == 't'&&
-		cmdline_info[z+2] == 'h' && cmdline_info[z+3] == '0')
-		 break;
-	}
-	if(t_len-15 == z)
-		return FALSE;
-	printf("=========%c============",cmdline_info[z]);
-	if( t_len < z+15)
-		return FALSE;
+        regcomp(&reg, pattern, cflags);
+        status = regexec(&reg, cmdline_buf, nmatch, pmatch, 0);
+        if(status == REG_NOMATCH)
+                printf("No Match\n");
+        else if(status == 0)
+        {
+                printf("Match:\n");
+                for(i = pmatch[1].rm_so; i < pmatch[1].rm_eo; ++i)
+                putchar(cmdline_buf[i]);
+                printf("\n");
+                strcpy(cmd_str, cmdline_buf + pmatch[1].rm_so);
+                printf("%s", cmd_str);
+        }
+        regfree(&reg);
 	
 	memset(gate_way_number, '\0', 128);
-	strcpy(gate_way_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
+	strcpy(gate_way_number, cmd_str);
 	memset(network_number, '\0', 128);
-	strcpy(network_number, cmdline_info+z+9);//¼ÓÏeth0:off:"  µĳ¤¶È
-	memcpy(gate_way_number,gate_way_number+4,len_network_number);
-	memcpy(network_number,network_number+4,len_network_number);
-	network_number[len_network_number] = '\0';
-	gate_way_number[len_network_number] = '\0';
-	printf("network_number:%s\n",network_number);
+	strcpy(network_number, cmd_str);
 	
-	memset(dir_name_info[0], '\0', 128);
-	strcpy(dir_name_info[0],"ledstationconfig");
-	
+	char dir_name_info[128][128];
+	char t_cmd[128];
+	char path[128];	
+	memset(dir_name_info, '\0', 128);
+	strcpy(dir_name_info,"ledstationconfig");
+	printf("gate_way_number$$$$$%s\n",gate_way_number);
 
-	printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$gate_way_number$$$$$%s\n",gate_way_number);
-	/*if(get_file_from_server(dir_name_info, gate_way_number))
-	{
-		printf("ftp get file success");
-	}
-	sprintf(t_cmd,"mv /app/%s /app/ini/",network_number);
-	mySystem(t_cmd);
-	sleep(2);
-	sprintf(path,"/app/ini/%s",network_number);
-	parse_ini(path);
-	*/
 	if(find_new_file(INI_FILE_DIR,config_ini_name))
 	{
 		sprintf(path,"/app/ini/%s",config_ini_name);
@@ -101,11 +88,11 @@ boolean my_parse_ini()
 		if(get_file_from_server(dir_name_info, gate_way_number))
 		{
 			printf("ftp get file success");
-		sprintf(t_cmd,"mv /app/%s /app/ini/",network_number);
-		mySystem(t_cmd);
-		sleep(2);
-		sprintf(path,"/app/ini/%s",network_number);
-		parse_ini(path);
+			sprintf(t_cmd,"mv /app/%s /app/ini/",network_number);
+			mySystem(t_cmd);
+			sleep(2);
+			sprintf(path,"/app/ini/%s",network_number);
+			parse_ini(path);
 		}
 		else
 		{
@@ -120,21 +107,6 @@ pthread_t perform_automatic_strategy_pid = -1;
 
 int  main(int argc, char * argv[])
 {
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	printf("------I am version:%s---------\n",GETWAY_VERSION);
 	ini_dir();
 	my_parse_ini();
@@ -151,9 +123,10 @@ int  main(int argc, char * argv[])
 	if(!config_init())
 		printf("config_init failed\n");	
 
-	printf("\n\n==================GetSize:%d======================\n\n",GetSize(timetable));
+	printf("\n\n the time table size is %d====\n\n",GetSize(timetable));
 
-	pthread_t send_heartbeat_packet_pid, recieve_server_packet_pid, message_init_pid; 
+	pthread_t send_heartbeat_packet_pid, recieve_server_packet_pid, message_init_pid;
+
 	if(pthread_create(&message_init_pid, NULL, message_init, NULL))
 	{
 		printf("create message_init pthread error .... \n");
@@ -174,7 +147,6 @@ int  main(int argc, char * argv[])
 	}	
 	printf("blue day\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
-	//pthread_join(perform_automatic_strategy_pid,NULL);
 	return 0;
 }
 
