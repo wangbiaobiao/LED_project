@@ -120,11 +120,9 @@ int parse_ini(char* path)
     configuration config;
 
     if (ini_parse(path, handler, &config) < 0) {
-        printf("Can't load 'test.ini'\n");
+        printf("Can't load the ini file\n");
         return 1;
     }
-    printf("Config loaded from 'test.ini': version=%s, name=%s, email=%s\n",
-        config.version, config.name, config.email);
     tranform(&config);
     return 0;
 }

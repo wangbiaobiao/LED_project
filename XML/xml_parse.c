@@ -10,7 +10,6 @@ int strategy_list_size = 0;
 char network_number[16];
 DList* timetable = NULL;
 extern char gate_way_number[128];
-extern int len_network_number;
 
 void xml_open()
 {   
@@ -157,123 +156,80 @@ int xml_parse(const char* filename, int type, int* xml_length)
 }
 boolean strategy_parse(const char* filename)
 {
-	/*if(current_strategy_list != NULL)
-		free(current_strategy_list);
-	if(timetable != NULL)
-		DestroyList(timetable);*/
+	xmlDocPtr doc;
+	xmlNodePtr curNode, dcurNode, ecurNode;
+	xmlChar *szkey;
+	int number;
 	timetable = InitList();
-	int node_id = 0;
-	int number = 0;
 	int strategy_list_node_size = sizeof(strategy_list);
 	current_strategy_list = (strategy_list*)malloc(strategy_list_node_size);
 	xml_open();
-	int strategy_id = 0, i =0, result = -1;
-	char xpathExpr[256];
-	char find_str[64];
-	char find_addr[64];
 	char path[256] = "/app/strategy/";
 	strcat(path,filename);
-	memset(xpathExpr,'\0',256);
-	printf("is being parseing xml ............... %d\n",current_strategy_list);
-	while(1)
+	doc = xmlReadFile(path, "UTF-8", XML_PARSE_RECOVER);
+	if(NULL == doc)	
+	{		
+		printf("Document not parsed successfully\n");
+		xmlFreeDoc(doc);
+		return -1;
+	}
+
+	curNode = xmlDocGetRootElement(doc);
+	if(NULL == curNode)
 	{
-		node_id++;
-		strategy_id = 0;
-		/*startDate*/
-		memset(xpathExpr,'\0',256);
-		sprintf(xpathExpr,"/StrategyConfig/strategy[%d]",node_id);
-		printf("is being parseing xml ............... %s\n",xpathExpr);
-		if((result = execute_xpath_expression(path, xpathExpr, "node_address", find_addr, 0)) == -1)
+		printf("empty document\n");
+		xmlFreeDoc(doc);
+		return -1;
+	}
+	curNode = curNode->children->next;
+	while(curNode != NULL)
+	{
+		number++;
+		szkey = xmlGetProp(curNode, BAD_CAST "node_address");
+		printf("******************************************\n");
+		strcpy(current_strategy_list[number-1].node_addr,szkey);
+		printf("debug is %s %s\n",szkey,curNode->name);
+		dcurNode = curNode->children->next;
+		while(dcurNode != NULL)
 		{
-				printf("$$$$$$$$find node_address is fault\n");
-				xml_close();
-				return FALSE;
-		}
-		printf("is being parseing xml ............... %s\n",find_addr);
-		if(result == -4)
-		{
-			xml_close();
-			//strategy_list_size = strategy_id-1;
-			strategy_list_size = number;
-			printf("result = -4, size:%d\n",strategy_list_size);
-			printf("$$$$$$$$$is will constrcut timetable......\n");
-			return construct_timetable(current_strategy_list);
-		}
-		else
-		{
-			printf("is being parseing xml ............... %s\n",find_addr);
-			for(;;)
+			printf("%s\n",dcurNode->name);
+			ecurNode = dcurNode->children->next;
+			while(ecurNode != NULL)
 			{
-				strategy_id++;
-				number++;
-				/*addr*/
-				strcpy(current_strategy_list[number-1].node_addr,find_addr);
-				/*startDate*/
-				memset(xpathExpr,'\0',256);
-				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/startDate", node_id,strategy_id);
-				printf("node_id is %d,strategy_id is %d\n",node_id,strategy_id);
-				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				if(!xmlStrcmp(ecurNode->name, BAD_CAST "startDate"))
 				{
-						xml_close();
-						return FALSE;
+					szkey = xmlGetProp(ecurNode, BAD_CAST "value");
+					strcpy(current_strategy_list[number-1].startDate,szkey);
 				}
-				if(result == -4)
+				if(!xmlStrcmp(ecurNode->name, BAD_CAST "endDate"))
 				{
-					number--;
-					break;
+					szkey = xmlGetProp(ecurNode, BAD_CAST "value");
+					strcpy(current_strategy_list[number-1].endDate,szkey);
 				}
-				strcpy(current_strategy_list[number-1].startDate,find_str);
-				/*endDate*/
-				memset(xpathExpr,'\0',256);
-				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/endDate", node_id,strategy_id);
-				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				if(!xmlStrcmp(ecurNode->name, BAD_CAST "startTime"))
 				{
-						xml_close();
-						return FALSE;
+					szkey = xmlGetProp(ecurNode, BAD_CAST "value");
+					strcpy(current_strategy_list[number-1].startTime,szkey);
 				}
-				strcpy(current_strategy_list[number-1].endDate,find_str);
-				/*startTime*/
-				memset(xpathExpr,'\0',256);
-				printf("very very %d\n",__LINE__);
-				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/startTime", node_id,strategy_id);
-				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
+				if(!xmlStrcmp(ecurNode->name, BAD_CAST "endTime"))
 				{
-						xml_close();
-						return FALSE;
+					szkey = xmlGetProp(ecurNode, BAD_CAST "value");
+					strcpy(current_strategy_list[number-1].endTime,szkey);
 				}
-				printf("very very %d\n",__LINE__);
-				strcpy(current_strategy_list[number-1].startTime,find_str);
-				/*endTime*/
-				memset(xpathExpr,'\0',256);
-				sprintf(xpathExpr,"/StrategyConfig/strategy[%d]/strategy[%d]/endTime",node_id,strategy_id);
-				if((result = execute_xpath_expression(path, xpathExpr, "value", find_str, 0)) == -1)
-				{
-						xml_close();
-						return FALSE;
-				}
-				strcpy(current_strategy_list[number-1].endTime,find_str);
-				
-				printf("=======%s=======\n",current_strategy_list[number-1].startDate);
-				printf("=======%s=======\n",current_strategy_list[number-1].endDate);
-				printf("=======%s=======\n",current_strategy_list[number-1].startTime);
-				printf("=======%s=======\n",current_strategy_list[number-1].endTime);
-				printf("=======%s=======\n",current_strategy_list[number-1].node_addr);
-				
-				//current_strategy_list = (strategy_list*)realloc(current_strategyy_list,strategy_list_node_size*(strategy_id+1));
+				ecurNode = ecurNode->next->next;
 				strategy_list* t_strategy_list  = NULL;
 				t_strategy_list = (strategy_list*)realloc(current_strategy_list,strategy_list_node_size*10);
-				if(t_strategy_list == NULL)
-				{
-					xml_close();
-					return FALSE;
-				}
-				current_strategy_list = t_strategy_list;	
-				printf("======================");
+				current_strategy_list = t_strategy_list;
 			}
-			
+			dcurNode = dcurNode->next->next;
 		}
+		curNode = curNode->next->next;
 	}
+	return construct_timetable(current_strategy_list);
 }
+
+
+
 Position t_position;
 boolean construct_timetable(strategy_list * list)
 {

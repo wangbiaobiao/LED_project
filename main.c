@@ -32,7 +32,7 @@ int ini_dir()
 
 boolean my_parse_ini()
 {
-	int status,i;
+        int status,i;
         int cflags = REG_EXTENDED;
         regmatch_t pmatch[2];
         const size_t nmatch = 2;
