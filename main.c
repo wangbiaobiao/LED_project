@@ -106,7 +106,7 @@ pthread_t perform_automatic_strategy_pid = -1;
 
 int  main(int argc, char * argv[])
 {
-	printf("------I am version:%s---------\n",GETWAY_VERSION);
+	printf("--------the app  version:%s---------\n",GETWAY_VERSION);
 	ini_dir();
 	my_parse_ini();
 	if(!semaphore_init())
@@ -144,7 +144,7 @@ int  main(int argc, char * argv[])
 		printf("create pthread error .... \n");
 		recieve_server_packet_pid = -1;
 	}	
-	printf("blue day\n");	
+	printf("app is runing\n");	
 	pthread_join(send_heartbeat_packet_pid,NULL);
 	return 0;
 }
