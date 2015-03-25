@@ -186,7 +186,6 @@ boolean strategy_parse(const char* filename)
 	{
 		number++;
 		szkey = xmlGetProp(curNode, BAD_CAST "node_address");
-		printf("******************************************\n");
 		strcpy(current_strategy_list[number-1].node_addr,szkey);
 		printf("debug is %s %s\n",szkey,curNode->name);
 		dcurNode = curNode->children->next;
@@ -225,6 +224,7 @@ boolean strategy_parse(const char* filename)
 		}
 		curNode = curNode->next->next;
 	}
+	xmlFreeDoc(doc);
 	return construct_timetable(current_strategy_list);
 }
 

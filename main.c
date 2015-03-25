@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-int len_network_number = 4;
 char gate_way_number[128] = {0};
 extern char config_ini_name[128];
 //有些板子没有ini文件夹，兼容性的代码：
@@ -75,8 +74,8 @@ boolean my_parse_ini()
 	char dir_name_info[128][128];
 	char t_cmd[128];
 	char path[128];	
-	memset(dir_name_info, '\0', 128);
-	strcpy(dir_name_info,"ledstationconfig");
+	memset(dir_name_info[0], '\0', 128);
+	strcpy(dir_name_info[0],"ledstationconfig");
 	printf("gate_way_number$$$$$%s\n",gate_way_number);
 
 	if(find_new_file(INI_FILE_DIR,config_ini_name))
