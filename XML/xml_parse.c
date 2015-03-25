@@ -3,11 +3,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-char network_number[16] = "";
-
 strategy_list * current_strategy_list = NULL; 
 int strategy_list_size = 0;
-char network_number[16];
 DList* timetable = NULL;
 extern char gate_way_number[128];
 
@@ -281,7 +278,7 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 
 	addr = atoi(nod_addr);
 	#ifdef DEBUG
-	printf("*********************************************%d\n",addr);
+	printf("the timetable's addr is %d\n",addr);
 	#endif
    	if((startData_startTime_count_second = str2sec(time_format(startDate_startTime))) == -1)
 	{
@@ -305,26 +302,20 @@ boolean one_strategy_timetable(char* startDate, char* endDate, char* startTime, 
 	t_timemoment.node_addr = addr;
 	t_timemoment.flag = 0;
 	
-	#ifdef DEBUG
-	printf("####################################################%d\n",t_timemoment.node_addr);
-	#endif
-	
-	
 	t_node = MakeNode(&t_timemoment);
 	/*在链表中p位置之后插入新节点s*/  
 	InsAfter(timetable, t_position, t_node);  
 	t_position = t_position->next;
-	printf("GetSize:%d\n",GetSize(timetable));
 
 	PNode t_head = GetHead(timetable);
 	PNode tt_node = t_head;
 	
 	#ifdef DEBUG
-	printf("GetSize:%d\n",GetSize(timetable));
+	printf("the timetable size is :%d\n",GetSize(timetable));
 	for(; tt_node->next != NULL; tt_node=tt_node->next)
 	{
 		time_printf(tt_node->next->data.startMoment, tt_node->next->data.endMoment);
-		printf("addr is %d\n",tt_node->next->data.node_addr);
+		printf("the node addr is %d\n",tt_node->next->data.node_addr);
 	}
 	#endif
 	

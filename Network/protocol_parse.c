@@ -733,31 +733,30 @@ void get_led_node_status(unsigned char* led_status_info,int t_start,int nodes)
 		for(i  = 1;i < point_config.beiting.len; i++)
 		{
 			*(NodeAddress + i - 1)  = point_config.beiting.point[i];
-			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.beiting.point[i]);
+			printf("beiting addr is %d\n",point_config.beiting.point[i]);
 		}
 		NodeAddress  = NodeAddress + point_config.beiting.len-1;
 		
 		for(i  = 1;i < point_config.dapai.len; i++)
 		{
 			*(NodeAddress + i - 1 ) = point_config.dapai.point[i];
-			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.dapai.point[i]);
+			printf("dapai addr is %d\n",point_config.dapai.point[i]);
 		}
 		NodeAddress  = NodeAddress + point_config.dapai.len-1;
 		
 		for(i  = 1;i < point_config.yuanhu.len; i++)
 		{
 			*(NodeAddress + i - 1 ) = point_config.yuanhu.point[i];
-			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",point_config.yuanhu.point[i]);
+			printf("yuanhu addr is %d\n",point_config.yuanhu.point[i]);
 		}
 		NodeAddress  = NodeAddress - (point_config.dapai.len-1) - (point_config.beiting.len-1);
 		
 		for(i = 0;i < xml_length_type_100_size -8; i++)
 		{
-			printf("$$$$$$$$$$$$$$$$$$$$$$$$$$%d\n",*(NodeAddress+i));
+			printf("all the point addr is $%d\n",*(NodeAddress+i));
 		}
 	
 		data_packet relay_packet={.SensorData = -1}, voltage_packet = {.SensorData = -1};
-		printf("\n===============nodes:%d=============\n",nodes);
 		int j = 0;
 		void build_body(int len,char ch)
 		{
@@ -838,12 +837,12 @@ void* send_heartbeat_packet(void * arg)
 		message_info[message_len+MESSAGE_HEAD_LEN] = 0xcc;
 		message_info[message_len+MESSAGE_HEAD_LEN+1] = getUint8BCC(message_info,14, message_len+MESSAGE_HEAD_LEN+1);
 		int i;
-		printf("************head****\n");
+		printf("***********heart head****\n");
 		for(i = 0;i < message_len+MESSAGE_HEAD_LEN+2; i++)
 		{
 			printf("%02x ",message_info[i]);
 		}
-		printf("\n************body***\n");
+		printf("\n************heart body***\n");
 		for(i = 0;i < message_len; i++)
 		{
 			printf("%02x ",message_body[i]);
@@ -856,13 +855,11 @@ void* send_heartbeat_packet(void * arg)
 		}
 		else
 		{
-			printf("\n==================");
 			j = 14;
 			{
 				int n=0,m=0;
 			}
 			printf("%02x,%02x\n",message_info[j],message_info[j+1]);
-			printf("==================\n");
 		}
 		for(j=0; j<RECIEVE_TIMEOUT; j++)
 		{
@@ -882,10 +879,6 @@ void* send_heartbeat_packet(void * arg)
 		sleep(30);	
 	}
 }
-
-
-
-
 
 boolean recieve_server_packet()
 {
