@@ -29,7 +29,7 @@ struct _strategy_Timetable;
 struct _DList;
 extern struct _DList* timetable;
 extern int timetable_size;
-extern char network_number[16];
+extern char network_number[128];
 
 extern int strategy_list_size;
 extern strategy_list * current_strategy_list; 
